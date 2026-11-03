@@ -3829,5 +3829,107 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
  setInterval(sendPresenceHeartbeat,25000);
  setInterval(()=>{if($("gamesPage")?.classList.contains("active"))loadFriends();},20000);
 })();
-</script></body>
+</script>
+<div id="communityCaptchaModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop" id="communityCaptchaBackdrop"></div>
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="communityCaptchaTitle" style="width:min(460px,100%);text-align:center">
+    <button class="modal-close" id="communityCaptchaClose" type="button" aria-label="Close verification">×</button>
+    <p class="eyebrow">COMMUNITY SECURITY</p>
+    <h2 id="communityCaptchaTitle">Verify you're human</h2>
+    <p style="color:var(--muted);line-height:1.5">Complete the quick security check to enter the Deluxe Community.</p>
+    <div id="communityTurnstileWidget" style="display:flex;justify-content:center;min-height:65px;margin:18px 0"></div>
+    <p id="communityCaptchaStatus" class="social-muted" role="status" aria-live="polite">Loading verification…</p>
+  </section>
+</div>
+<script id="communityTurnstileGate">
+(() => {
+  const SITE_KEY = "0x4AAAAAAFxkRemaDnJZ2oZF";
+  const HOSTNAME = "secretunblocked-deluxe.zachary-ceiley.workers.dev";
+  const modal = document.getElementById("communityCaptchaModal");
+  const widget = document.getElementById("communityTurnstileWidget");
+  const status = document.getElementById("communityCaptchaStatus");
+  if (!modal || !widget || !status || typeof window.showPage !== "function") return;
+
+  let verified = false, widgetId = null, pending = false, apiPromise = null;
+  const originalShowPage = window.showPage;
+
+  function closeModal() {
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+    pending = false;
+    if (!verified && widgetId !== null && window.turnstile) {
+      try { window.turnstile.reset(widgetId); } catch (_) {}
+    }
+  }
+
+  function openModal() {
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    status.textContent = "Loading verification…";
+    if (widgetId !== null && window.turnstile) {
+      try { window.turnstile.reset(widgetId); status.textContent = "Complete the check above."; return; } catch (_) { widgetId = null; }
+    }
+    loadApi().then(() => {
+      if (modal.classList.contains("hidden") || widgetId !== null) return;
+      widgetId = window.turnstile.render(widget, {
+        sitekey: SITE_KEY,
+        action: "community_entry",
+        callback: submitToken,
+        "expired-callback": () => { status.textContent = "The check expired. Please try again."; },
+        "error-callback": () => { status.textContent = "Verification couldn't load. Please refresh and try again."; }
+      });
+      status.textContent = "Complete the check above.";
+    }).catch(() => { status.textContent = "Verification couldn't load. Please refresh and try again."; });
+  }
+
+  function loadApi() {
+    if (window.turnstile) return Promise.resolve();
+    if (apiPromise) return apiPromise;
+    apiPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => window.turnstile ? resolve() : reject(new Error("Turnstile unavailable"));
+      script.onerror = () => reject(new Error("Turnstile failed to load"));
+      document.head.appendChild(script);
+    });
+    return apiPromise;
+  }
+
+  async function submitToken(token) {
+    if (!token || pending) return;
+    pending = true;
+    status.textContent = "Checking verification…";
+    try {
+      const { data, error } = await sb.functions.invoke("community-captcha", { body: { token } });
+      if (error || !data?.success) throw new Error("Verification failed");
+      verified = true;
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+      originalShowPage("community");
+    } catch (_) {
+      status.textContent = "Verification failed. Please try the check again.";
+      if (widgetId !== null && window.turnstile) {
+        try { window.turnstile.reset(widgetId); } catch (_) {}
+      }
+    } finally {
+      pending = false;
+    }
+  }
+
+  window.showPage = function(name) {
+    if (name !== "community" || verified) return originalShowPage(name);
+    if (typeof currentUser === "undefined" || !currentUser) return originalShowPage(name);
+    openModal();
+  };
+
+  document.getElementById("communityCaptchaClose")?.addEventListener("click", closeModal);
+  document.getElementById("communityCaptchaBackdrop")?.addEventListener("click", closeModal);
+  window.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+  });
+})();
+</script>
+</body>
 </html>
