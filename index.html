@@ -2211,8 +2211,6 @@ function loadFromDeluxe(onLoaded) {
     if ($("deluxeAgeSettingStatus") && savedDeluxeAge !== null) $("deluxeAgeSettingStatus").textContent = "Saved on this device. No birthday is stored.";
   }
   function playGameFromDetails(id) {
-    const game = allPublishedGames.find(item => item.id === id);
-    if (!game || !checkGameAgeBeforePlay(game)) return;
     rememberDeluxeGame(id);
     startDeluxePlayTracking(id);
     openGame(id);
@@ -2568,6 +2566,7 @@ if (!sb) return;
     const {data,error} = await sb.from("games").select("id,title,description,thumbnail_url,icon_url,game_url,status,created_at,updated_at,creator_id,chat_enabled,tags,age_recommendation,profiles(username)").eq("id",id).maybeSingle();
     if (error || !data) return alert(error?.message || "Game not found.");
     if (data.status !== "published" && data.creator_id !== currentUser?.id && currentRole !== "admin" && currentRole !== "bugtester") return alert("This game is not published.");
+    if (!checkGameAgeBeforePlay(data)) return;
     currentGame = data;
     rememberDeluxeGame(id);
     startDeluxePlayTracking(id);
