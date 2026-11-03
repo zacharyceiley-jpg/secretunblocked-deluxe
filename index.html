@@ -2193,7 +2193,7 @@ function loadFromDeluxe(onLoaded) {
   function checkGameAgeBeforePlay(game) {
     const rating = String(game?.age_recommendation || game?.age_rating || "").trim();
     if (!rating || /^all ages$/i.test(rating)) return true;
-    const match = rating.match(/(\\d+)/);
+    const match = rating.match(/(\d+)/);
     if (!match) return true;
     const requiredAge = Number(match[1]), selectedAge = getDeluxeAgeSetting();
     if (selectedAge !== null && selectedAge >= requiredAge) return true;
