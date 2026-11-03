@@ -3918,6 +3918,15 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
     }
   }
 
+  // Intercept the existing document-level navigation handler before it can open Community directly.
+  document.addEventListener("click", event => {
+    const target = event.target.closest("[data-page='community']");
+    if (!target || verified) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.showPage("community");
+  }, true);
+
   window.showPage = function(name) {
     if (name !== "community" || verified) return originalShowPage(name);
     if (typeof currentUser === "undefined" || !currentUser) return originalShowPage(name);
