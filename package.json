@@ -1,0 +1,57 @@
+{
+  "name": "secret-unblocked-deluxe",
+  "version": "1.0.0",
+  "description": "Secret Unblocked Deluxe desktop app wrapper",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "dist:mac": "electron-builder --mac dmg --universal",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.secretunblocked.deluxe",
+    "productName": "Secret Unblocked Deluxe",
+    "artifactName": "Secret-Unblocked-Deluxe-${arch}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.games"
+    },
+    "dmg": {
+      "title": "Secret Unblocked Deluxe"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
