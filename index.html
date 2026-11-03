@@ -308,6 +308,7 @@ body:has(.deluxe-sidebar:hover) .deluxe-sidebar,body:has(.deluxe-sidebar:focus-w
 .game-detail-description-card{padding:19px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
 .game-detail-description-card h3{margin:0 0 9px}.game-detail-description-card p{margin:0;color:var(--muted);line-height:1.65;white-space:pre-wrap}
 .game-detail-rating{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);font-weight:800;color:#facc15}
+.game-age-rating{margin-top:7px;color:var(--muted);font-size:13px;font-weight:700}
 .game-detail-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:13px}
 .game-detail-tags .game-tag{margin:0}
 .game-detail-promo{margin:25px 0}.game-detail-promo .game-promo-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
@@ -444,7 +445,20 @@ body.light-mode .game-detail-description-card{background:#fff}
         <p class="eyebrow">PERSONALISATION</p><h1>Settings</h1>
         <p>Manage your account-synced exclusive themes.</p>
       </div>
-      <div class="section-heading" style="margin-top:0"><div><p class="eyebrow">APPEARANCE</p><h2>Display mode</h2></div></div>
+      <div class="section-heading" style="margin-top:0"><div><p class="eyebrow">AGE PREFERENCE</p><h2>Your age setting</h2></div></div>
+      <article class="exclusive-theme-card" style="margin-bottom:28px">
+        <div class="exclusive-theme-body">
+          <h3>Choose your age group</h3>
+          <p>This setting helps Deluxe check game age recommendations before launching a game. Choose it manually. Deluxe does not ask for or save your birthday, and this preference stays on this device only.</p>
+          <label for="deluxeAgeSetting" class="small-note">Your age group</label>
+          <select id="deluxeAgeSetting" style="display:block;width:100%;margin-top:7px;padding:12px 13px;background:#0b0d11;border:1px solid var(--line);border-radius:9px;color:var(--text)">
+            <option value="">Not set</option>
+            <option value="5">5–6</option><option value="7">7–9</option><option value="10">10–11</option><option value="12">12</option><option value="13">13–15</option><option value="16">16–17</option><option value="18">18+</option>
+          </select>
+          <div id="deluxeAgeSettingStatus" class="theme-message" role="status" aria-live="polite">Your age setting has not been set.</div>
+        </div>
+      </article>
+      <div class="section-heading"><div><p class="eyebrow">APPEARANCE</p><h2>Display mode</h2></div></div>
       <article class="exclusive-theme-card" style="margin-bottom:28px">
         <div class="exclusive-theme-preview" style="display:grid;place-items:center;background:linear-gradient(135deg,#f5f7fc,#e4e9f5);color:#6550d9;font-size:48px">☀️</div>
         <div class="exclusive-theme-body">
@@ -2165,7 +2179,40 @@ function loadFromDeluxe(onLoaded) {
     loadSeasonalPurchasesForGame(id);
   }
 
+  const DELUXE_AGE_SETTING_KEY = "deluxeAgeSettingV1";
+  function getDeluxeAgeSetting() {
+    try { const value = Number(localStorage.getItem(DELUXE_AGE_SETTING_KEY)); return Number.isFinite(value) && value >= 5 ? value : null; }
+    catch { return null; }
+  }
+  function saveDeluxeAgeSetting(value) {
+    const status = $("deluxeAgeSettingStatus"), age = value === "" ? null : Number(value);
+    try { if (age === null) localStorage.removeItem(DELUXE_AGE_SETTING_KEY); else localStorage.setItem(DELUXE_AGE_SETTING_KEY, String(age)); }
+    catch { if (status) status.textContent = "Could not save this setting in your browser."; return; }
+    if (status) status.textContent = age === null ? "Your age setting has not been set." : "Saved on this device. No birthday is stored.";
+  }
+  function checkGameAgeBeforePlay(game) {
+    const rating = String(game?.age_recommendation || game?.age_rating || "").trim();
+    if (!rating || /^all ages$/i.test(rating)) return true;
+    const match = rating.match(/(\\d+)/);
+    if (!match) return true;
+    const requiredAge = Number(match[1]), selectedAge = getDeluxeAgeSetting();
+    if (selectedAge !== null && selectedAge >= requiredAge) return true;
+    alert(selectedAge === null
+      ? "Set your age group in Settings before playing this game. Its age rating is " + rating + "."
+      : "This game is rated " + rating + ", which is above your current age setting. You can change your age setting manually in Settings if it is incorrect.");
+    showPage("settings");
+    $("deluxeAgeSetting")?.focus();
+    return false;
+  }
+  $("deluxeAgeSetting")?.addEventListener("change", event => saveDeluxeAgeSetting(event.target.value));
+  const savedDeluxeAge = getDeluxeAgeSetting();
+  if ($("deluxeAgeSetting")) {
+    $("deluxeAgeSetting").value = savedDeluxeAge === null ? "" : String(savedDeluxeAge);
+    if ($("deluxeAgeSettingStatus") && savedDeluxeAge !== null) $("deluxeAgeSettingStatus").textContent = "Saved on this device. No birthday is stored.";
+  }
   function playGameFromDetails(id) {
+    const game = allPublishedGames.find(item => item.id === id);
+    if (!game || !checkGameAgeBeforePlay(game)) return;
     rememberDeluxeGame(id);
     startDeluxePlayTracking(id);
     openGame(id);
@@ -3727,7 +3774,7 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
     const edit=isOwner?'<button type="button" onclick="editMyGame(\''+g.id+'\')" title="Edit game">✎</button>':"";
     const videos=(Array.isArray(g.promo_videos)?g.promo_videos:[]).filter(v=>/^[A-Za-z0-9_-]{11}$/.test(v)).slice(0,5);
     const promo=videos.length?'<section class="game-detail-promo"><div class="section-heading"><h2>Promo videos</h2></div><div class="game-promo-grid">'+videos.map((v,i)=>'<div class="game-promo-card"><div class="game-promo-frame"><iframe src="https://www.youtube-nocookie.com/embed/'+v+'" title="'+title+' promo '+(i+1)+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div></div>').join("")+'</div></section>':"";
-    $id("gameDetailRoot").innerHTML='<div class="game-detail-revamp-head"><div><div class="game-detail-title-row"><h1>'+title+'</h1><div class="game-detail-title-actions">'+discord+fandom+edit+'</div></div><button class="secondary game-detail-back" onclick="showPage(\'games\')">← Back</button><div class="game-detail-tags">'+(tags||'<span class="game-tag">No tags</span>')+'</div></div><div class="game-detail-description-card"><h3>About this game</h3><p>'+description+'</p><div class="game-detail-rating">'+(rating>0?'★ '+rating.toFixed(1)+' / 5':'☆ Not rated yet')+'</div><div class="small-note">Created by '+escapeHtml(g.profiles?.username||"Unknown creator")+'</div></div></div>'+promo+'<button class="game-detail-play" aria-label="Play game" title="Play game" onclick="playGameFromDetails(\''+g.id+'\')">▶</button>';
+    $id("gameDetailRoot").innerHTML='<div class="game-detail-revamp-head"><div><div class="game-detail-title-row"><h1>'+title+'</h1><div class="game-detail-title-actions">'+discord+fandom+edit+'</div></div><button class="secondary game-detail-back" onclick="showPage(\'games\')">← Back</button><div class="game-detail-tags">'+(tags||'<span class="game-tag">No tags</span>')+'</div></div><div class="game-detail-description-card"><h3>About this game</h3><p>'+description+'</p><div class="game-detail-rating">'+(rating>0?'★ '+rating.toFixed(1)+' / 5':'☆ Not rated yet')+'</div><div class="game-age-rating">Age rating: '+escapeHtml(g.age_recommendation||g.age_rating||"Not specified")+'</div><div class="small-note">Created by '+escapeHtml(g.profiles?.username||"Unknown creator")+'</div></div></div>'+promo+'<button class="game-detail-play" aria-label="Play game" title="Play game" onclick="playGameFromDetails(\''+g.id+'\')">▶</button>';
     showPage("gameDetail");loadSeasonalPurchasesForGame(id);
   };
   window.renderGamePage=function(){
