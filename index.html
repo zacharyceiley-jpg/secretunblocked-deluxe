@@ -2654,40 +2654,11 @@ flushDeluxePlayTracking();
         frame.contentWindow.postMessage({type:"deluxe:load-request",gameId:currentGame.id},"*");
       }
     });
-    try{
-      const response=await fetch(url,{mode:"cors",credentials:"omit",cache:"no-store"});
-      if(!response.ok)return;
-      const type=(response.headers.get("content-type")||"").toLowerCase();
-      const rawText=await response.text();
-      // Ignore a UTF-8 BOM, whitespace, and leading comments/XML declarations when detecting HTML.
-      const text=rawText.replace(/^\uFEFF/,"").trimStart();
-      const withoutPreamble=text
-        .replace(/^(?:<\?xml[^>]*>\s*)+/i,"")
-        .replace(/^(?:<!--[\s\S]*?-->\s*)+/,"")
-        .trimStart();
-      const startsLikeHtml=/^(?:<!doctype\s+html\b|<html\b|<head\b|<body\b|<meta\b|<title\b|<script\b|<style\b|<div\b|<main\b|<canvas\b|<svg\b|<iframe\b|<link\b|<section\b|<article\b|<\?xml)/i.test(withoutPreamble);
-      const isPlainTextHtmlSource=!type.includes("text/html") && startsLikeHtml;
-      if(!isPlainTextHtmlSource)return;
-      // Rebase relative assets so images, scripts, stylesheets and links still resolve at the source URL.
-      const parsed=new DOMParser().parseFromString(rawText,"text/html");
-      if(!parsed.head || !parsed.documentElement)return;
-      const existingBase=parsed.head.querySelector("base");
-      if(existingBase){
-        existingBase.href=url;
-      }else{
-        const base=parsed.createElement("base");
-        base.href=url;
-        parsed.head.prepend(base);
-      }
-      // srcdoc inherits the Deluxe origin. Remove allow-same-origin before loading it
-      // so uploaded HTML remains isolated from the main site.
-      frame.setAttribute("sandbox","allow-scripts allow-forms allow-popups allow-pointer-lock allow-downloads allow-modals");
-      frame.removeAttribute("src");
-      frame.srcdoc="<!doctype html>\n"+parsed.documentElement.outerHTML;
-    }catch(error){
-      // If the host blocks cross-origin fetching, preserve the existing direct-URL fallback.
-      console.info("Using direct game URL fallback:",error?.message||error);
-    }
+    // Keep games on their original URL instead of converting fetched HTML to srcdoc.
+    // srcdoc runs in a sandboxed opaque origin, which prevents browser storage APIs
+    // (localStorage / IndexedDB) used by Minecraft and other games from persisting.
+    // Direct navigation also resolves relative assets against the game's own URL.
+
   }
 
   function renderGamePage(){
