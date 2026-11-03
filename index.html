@@ -258,6 +258,10 @@ body{background-image:radial-gradient(circle at 78% -8%,rgba(53,208,127,.12),tra
 .deluxe-topbar{height:66px;padding:0 24px 0 22px;gap:16px;z-index:100;border-bottom:1px solid var(--line);background:rgba(10,13,16,.9)}
 .deluxe-topbar .brand{gap:10px}.deluxe-topbar .brand-mark{background:linear-gradient(135deg,#2bbf72,#167b4a);box-shadow:0 7px 24px #22c55e33}
 .topbar-spacer{flex:1}.topbar-actions{display:flex;align-items:center;gap:12px}
+.backup-site-notice{display:inline-flex;align-items:center;gap:6px;max-width:360px;padding:8px 11px;border:1px solid rgba(248,113,113,.38);border-radius:11px;background:rgba(127,29,29,.18);color:#fecaca;text-decoration:none;font-size:12px;font-weight:750;line-height:1.25;white-space:nowrap;transition:.18s}
+.backup-site-notice:hover{background:rgba(127,29,29,.3);border-color:rgba(248,113,113,.7)}
+.backup-site-notice strong{color:#fca5a5}.backup-site-notice span{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:620px){.backup-site-notice{max-width:145px;padding:7px 8px;font-size:11px;white-space:normal;gap:4px}.topbar-actions{gap:6px}}
 .top-icon{width:42px;height:42px;display:grid;place-items:center;border:1px solid transparent;border-radius:13px;background:transparent;color:var(--text);font-size:21px;position:relative;transition:.18s}
 .top-icon:hover{background:var(--panel2);border-color:var(--line)}
 .delubux-icon{color:#f5c542}.top-hover-wrap{position:relative}
@@ -367,6 +371,7 @@ body.light-mode .game-detail-description-card{background:#fff}
     <div class="topbar-spacer"></div>
     <div class="topbar-actions">
       <div class="top-hover-wrap"><button id="delubuxBalance" class="top-icon delubux-icon" type="button" onclick="showPage('marketplace')" aria-label="Delubux balance" data-tooltip="0 Delubux">🪙</button><span class="top-hover-card" id="delubuxHoverBalance">0 Delubux</span></div>
+      <a class="backup-site-notice" href="https://zacharyceiley-jpg.github.io/secretunblocked-deluxe/" target="_blank" rel="noopener noreferrer" title="Open the GitHub Pages backup"><strong>Blocked?</strong><span>Try our backup site · zacharyceiley-jpg.github.io/secretunblocked-deluxe</span></a>
       <button id="accountButton" class="top-icon profile-top-icon" type="button" aria-label="Profile" title="Sign in">👤</button>
       <button class="top-icon" type="button" data-page="settings" aria-label="Settings" title="Settings">⚙</button>
       <button class="top-icon notification-top-icon" type="button" data-page="inbox" aria-label="Notifications" title="Notifications">♢<span id="unreadBadge" class="unread-badge hidden">0</span></button>
