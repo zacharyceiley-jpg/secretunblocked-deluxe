@@ -2624,6 +2624,31 @@ flushDeluxePlayTracking();
     }
     // Badge text observation was removed with the badges feature; do not call its deleted handler.
     frame.src=url;
+
+    // Restore keyboard focus to the active game after the user clicks empty
+    // Deluxe page space. Never steal focus from buttons, links, or text inputs.
+    if (!window.__deluxeGameFocusRecoveryBound) {
+      window.__deluxeGameFocusRecoveryBound = true;
+      document.addEventListener("pointerdown", event => {
+        if (!currentGame) return;
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (target.closest("button,a,input,textarea,select,[contenteditable='true'],.game-chat-panel,.game-chat-overlay,.game-player-controls,.game-menu")) return;
+        const activeFrame = $("activeGameFrame");
+        if (activeFrame) setTimeout(() => {
+          if (currentGame && $("activeGameFrame") === activeFrame) activeFrame.focus();
+        }, 0);
+      }, true);
+      window.addEventListener("focus", () => {
+        const activeFrame = $("activeGameFrame");
+        if (!currentGame || !activeFrame) return;
+        setTimeout(() => {
+          if (currentGame && $("activeGameFrame") === activeFrame) activeFrame.focus();
+        }, 0);
+      });
+    }
+
+    frame.setAttribute("tabindex","0");
     frame.addEventListener("load", () => {
       if (frame.contentWindow && currentGame) {
         frame.contentWindow.postMessage({type:"deluxe:load-request",gameId:currentGame.id},"*");
