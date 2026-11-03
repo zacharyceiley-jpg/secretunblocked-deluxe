@@ -435,7 +435,7 @@ body.light-mode .game-detail-description-card{background:#fff}
 
       <div class="page-title"><p class="eyebrow">DELUXE ECONOMY</p><h1>🪙 Delubux Marketplace</h1><p>Earn daily Delubux and buy or gift community themes.</p></div>
       <article class="exclusive-theme-card"><div class="exclusive-theme-body"><h2>Daily reward · 10 Delubux</h2><p>Claim once every 24 hours.</p><button class="primary" id="claimDailyReward" onclick="claimDailyDelubux()">Claim 10 🪙</button><div id="dailyRewardMessage" class="theme-message"></div></div></article>
-      <div class="section-heading"><h2>Account roles</h2></div><p class="settings-note">Permanent account upgrades. Publisher usernames are green; Bugtester usernames are blue. Admin is reserved and cannot be purchased.</p><div id="roleMarketplaceGrid" class="settings-grid"></div><div id="roleMarketplaceMessage" class="theme-message"></div>
+      <div class="section-heading"><h2>Account roles</h2></div><p class="settings-note">Bugtester is available for 30 Delubux. Publisher is not for sale and can only be gifted by an Admin. Publisher usernames are green; Bugtester usernames are blue.</p><div id="roleMarketplaceGrid" class="settings-grid"></div><div id="roleMarketplaceMessage" class="theme-message"></div>
       <div class="section-heading"><h2>Seasonal Bundles</h2></div><p class="settings-note">Limited seasonal collections with three games in every pack. Gifting seasonal bundles is 15% cheaper than buying one for yourself.</p><div id="seasonalMarketplaceGrid" class="seasonal-bundle-grid"><div class="loading">Loading seasonal bundles…</div></div>
       <div class="section-heading"><h2>User-created themes</h2></div><p class="settings-note">Buy for 6 Delubux or gift an owned theme for 5 Delubux.</p><div id="themeMarketplaceGrid" class="settings-grid"></div>
     </section>
@@ -530,7 +530,7 @@ body.light-mode .game-detail-description-card{background:#fff}
       <section id="gamesFriendsBar" class="games-friends-bar" aria-label="Your friends"><div class="friends-bar-heading"><strong>Friends</strong><span class="small-note">Sign in to see who is around</span></div><div class="friends-bar-list"><span class="small-note">Your friends will appear here.</span></div></section>
       <div class="game-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <input id="gameSearch" class="game-search" type="search" placeholder="Search games…" style="flex:1;min-width:190px">
-        <button class="primary" id="openGameUploader" type="button" title="Add a game" aria-label="Add a game">＋ Add game</button>
+        <button class="primary hidden" id="openGameUploader" type="button" title="Publisher or Admin access required" aria-label="Add a game">＋ Add game</button>
         <button class="secondary" type="button" onclick="showDeluxePlaytime()">⏱ Playtime</button>
       </div>
       <div class="game-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
@@ -705,6 +705,19 @@ function loadFromDeluxe(onLoaded) {
 
 
         <div class="section-heading" style="margin-top:30px">
+          <div><p class="eyebrow">ROLE MANAGEMENT</p><h2>Gift Publisher access</h2></div>
+        </div>
+        <div class="game-uploader">
+          <div class="game-form">
+            <p class="small-note">Publisher cannot be purchased. Only an Admin can gift this role.</p>
+            <label for="adminPublisherGiftSearch">Search users<input id="adminPublisherGiftSearch" type="search" placeholder="Search usernames…" oninput="renderAdminPublisherGiftUsers()"></label>
+            <label for="adminPublisherGiftUser">Recipient<select id="adminPublisherGiftUser"><option value="">Loading users…</option></select></label>
+            <button class="primary" id="adminGiftPublisherButton" type="button" onclick="giftAdminPublisher()">Gift Publisher</button>
+            <div id="adminPublisherGiftStatus" class="auth-message" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="section-heading" style="margin-top:30px">
           <div><p class="eyebrow">MODERATION</p><h2>Suspensions & bans</h2></div>
         </div>
         <div class="game-uploader">
@@ -853,6 +866,10 @@ function loadFromDeluxe(onLoaded) {
           <p>Some information is intended to be public, such as your username, profile details you choose to display, and published game information. Community messages and other interactions may be visible to the people or groups involved. Think carefully before sharing personal information with other users.</p>
           <h2>External websites</h2>
           <p>Games and links submitted by users may take you to websites outside Deluxe. Those websites operate independently and have their own privacy practices. Check their information before using them.</p>
+          <h2>Community and game rules</h2>
+          <p><strong>Appropriate games only:</strong> Games submitted to Secret Unblocked Deluxe must be appropriate for the platform and suitable for their displayed age recommendation. Games that are unsuitable, misleading, or otherwise violate these rules may be rejected or removed by an Admin.</p>
+          <p><strong>Advertisements and external links:</strong> Do not click random advertisements, unexpected pop-ups, or suspicious links. Only follow links you recognise and trust. Games and third-party websites may display content or advertisements that Deluxe does not control.</p>
+          <p>By using Deluxe or submitting games, you agree to follow these rules and help keep the community suitable for everyone.</p>
           <h2>Sign-in options</h2>
           <p>Deluxe currently provides email-and-password account sign-in through its account system. There is no Continue with Google sign-in option.</p>
           <p class="small-note">This page describes how the current Deluxe features are intended to use information. If a feature changes, this explanation should be updated to match it.</p>
@@ -1485,6 +1502,7 @@ function loadFromDeluxe(onLoaded) {
     if($("dailyTasksList"))loadDailyTasks();
     currentRoles = (ownedRoleRows || []).map(x=>x.role);
     currentRole = bestRoleFor(currentRoles, role?.role || "user");
+    updateGameCreationButton();
     applyExclusiveTheme();
     renderExclusiveThemeSettings();
     if (currentUser && pendingSfothUnlock) {
@@ -1545,7 +1563,7 @@ function loadFromDeluxe(onLoaded) {
   function roleTicksMarkup(roles=[],baseRole="user"){const all=[...(baseRole==="admin"?["admin"]:[]),...(roles||[])];return [...new Set(all)].map(r=>{const color=r==="admin"?"#ff4d5f":r==="publisher"?"#4ade80":"#60a5fa";const label=roleLabel(r);return '<span class="role-tick" title="'+label+'" aria-label="'+label+'" style="color:'+color+'">✓</span>';}).join("");}
   async function loadRoleMarketplace(){
     const grid=$("roleMarketplaceGrid");if(!grid)return;
-    const roles=[{id:"publisher",name:"Publisher",cost:50,color:"#4ade80",description:"Green username when this is your highest role; adds a green tick beside your name."},{id:"bugtester",name:"Bugtester",cost:30,color:"#60a5fa",description:"Blue username when this is your highest role; adds a blue tick and unlocks unpublished game testing."}];
+    const roles=[{id:"bugtester",name:"Bugtester",cost:30,color:"#60a5fa",description:"Blue username when this is your highest role; adds a blue tick and unlocks unpublished game testing."}];
     grid.innerHTML="";
     for(const role of roles){const owned=currentRoles.includes(role.id),blocked=currentRole==="admin";
       const card=document.createElement("article");card.className="exclusive-theme-card";
@@ -1669,6 +1687,7 @@ function loadFromDeluxe(onLoaded) {
   async function giftUserTheme(gameId){const username=prompt("Enter the recipient's exact Deluxe username:");if(!username)return;const {data:user,error:e}=await sb.from("profiles").select("id,username").ilike("username",username).maybeSingle();if(e||!user)return alert("User not found.");if(user.id===currentUser.id)return alert("You already own this theme.");const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:user.id});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();await loadThemeMarketplace();alert("Theme gifted to "+user.username+"!");}
   async function adminGrantDelubux(){if(currentRole!=="admin")return;const id=$("adminDelubuxUser").value,amount=Number($("adminDelubuxAmount").value);if(!id||!Number.isInteger(amount)||amount<1||amount>100000)return alert("Choose a user and valid amount.");const {data,error}=await sb.rpc("delubux_admin_grant",{p_user_id:id,p_amount:amount});$("adminDelubuxStatus").textContent=error?error.message:"Granted "+amount+" Delubux. Balance: "+data.balance;}
   function updateAccountUI(){
+    updateGameCreationButton();
     const settingsStatus = $("settingsAccountStatus");
     const settingsSignOut = $("settingsSignOut");
     if (settingsStatus) settingsStatus.textContent = currentUser ? "Signed in as " + (currentProfile?.username || currentUser.email || "Deluxe member") : "You are signed out";
@@ -2293,10 +2312,22 @@ function loadFromDeluxe(onLoaded) {
     renderGames(filter);
   }
 
+  function updateGameCreationButton(){
+    const button=$("openGameUploader");
+    if(!button)return;
+    const allowed=!!currentUser&&(currentRole==="admin"||currentRoles.includes("publisher"));
+    button.classList.toggle("hidden",!allowed);
+    button.title=allowed?"Add a game":"Publisher or Admin access required";
+  }
+
   function openGameUploader(){
     if (!currentUser) {
       openAuth("login");
       setAuthMessage("Sign in first to submit a game.");
+      return;
+    }
+    if(currentRole!=="admin"&&!currentRoles.includes("publisher")){
+      setGameFormMessage("Only Publisher or Admin accounts can submit games. Ask an Admin to gift you Publisher access.",true);
       return;
     }
     $("gameUploader").classList.remove("hidden");
@@ -2319,6 +2350,7 @@ function loadFromDeluxe(onLoaded) {
     event.preventDefault();
     if (!sb || !currentUser) return openAuth("login");
     if (editingGameId) return updateGame(editingGameId);
+    if(currentRole!=="admin"&&!currentRoles.includes("publisher")) return setGameFormMessage("Only Publisher or Admin accounts can submit games. Ask an Admin to gift you Publisher access.",true);
     const title=$("gameTitle").value.trim();
     const description=$("gameDescription").value.trim();
     const age_recommendation=$("gameAgeRecommendation").value;
@@ -2712,6 +2744,44 @@ flushDeluxePlayTracking();
   }
 
 
+  function renderAdminPublisherGiftUsers(){
+    const select=$("adminPublisherGiftUser");
+    if(!select)return;
+    const previous=select.value;
+    const query=($("adminPublisherGiftSearch")?.value||"").trim().toLowerCase();
+    const users=adminAllUsers.filter(user=>String(user.username||"").toLowerCase().includes(query));
+    select.innerHTML='<option value="">Choose a recipient…</option>'+users.map(user=>'<option value="'+escapeHtml(user.id)+'">'+escapeHtml(user.username||"User")+(user.id===currentUser?.id?" (you)":"")+(user._roles?.includes("publisher")?" · Publisher already owned":"")+'</option>').join("");
+    if(users.some(user=>user.id===previous))select.value=previous;
+  }
+
+  async function giftAdminPublisher(){
+    const status=$("adminPublisherGiftStatus");
+    const button=$("adminGiftPublisherButton");
+    const userId=$("adminPublisherGiftUser")?.value;
+    if(!currentUser||currentRole!=="admin"||!sb){if(status)status.textContent="Admin access is required.";return;}
+    if(!userId){if(status)status.textContent="Choose a recipient first.";return;}
+    const recipient=adminAllUsers.find(user=>user.id===userId);
+    if(!confirm("Gift Publisher access to "+(recipient?.username||"this user")+"?"))return;
+    if(button)button.disabled=true;
+    if(status){status.style.color="var(--muted)";status.textContent="Granting Publisher access…";}
+    try{
+      const {data:existing,error:lookupError}=await sb.from("user_role_ownership").select("role").eq("user_id",userId).eq("role","publisher").maybeSingle();
+      if(lookupError)throw lookupError;
+      if(existing){
+        if(status)status.textContent=(recipient?.username||"This user")+" already has Publisher access.";
+      }else{
+        const {error}=await sb.from("user_role_ownership").insert({user_id:userId,role:"publisher"});
+        if(error)throw error;
+        if(status){status.style.color="var(--success, #62d69a)";status.textContent="Publisher access gifted to "+(recipient?.username||"user")+".";}
+      }
+      if(userId===currentUser.id)await loadCurrentProfile();
+      await loadAdminUserTools();
+    }catch(error){
+      console.error("Publisher role gift failed:",error);
+      if(status){status.style.color="#ff7b7b";status.textContent=error.message||"Unable to gift Publisher access.";}
+    }finally{if(button)button.disabled=false;}
+  }
+
   function renderAdminModerationUsers(){
     const root = $("adminModerationUsers");
     if (!root) return;
@@ -2751,7 +2821,11 @@ flushDeluxePlayTracking();
     if (banError) return console.error(banError);
 
     const banMap = Object.fromEntries((bans || []).map(b => [b.user_id,b]));
-    adminAllUsers = (data || []).map(u => ({...u,_ban:banMap[u.id] || null}));
+    const {data:ownedRows,error:ownedError}=await sb.from("user_role_ownership").select("user_id,role");
+    if(ownedError)return console.error(ownedError);
+    const ownedMap=new Map();(ownedRows||[]).forEach(row=>{if(!ownedMap.has(row.user_id))ownedMap.set(row.user_id,[]);ownedMap.get(row.user_id).push(row.role);});
+    adminAllUsers = (data || []).map(u => ({...u,_ban:banMap[u.id] || null,_roles:ownedMap.get(u.id)||[]}));
+    renderAdminPublisherGiftUsers();
     renderAdminModerationUsers();
   }
 
