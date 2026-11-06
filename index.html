@@ -3763,17 +3763,16 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
      const title=escapeHtml(g.title||"Untitled Game");
      const images=(Array.isArray(g.thumbnail_images)?g.thumbnail_images:[]).filter(validGameUrl).slice(0,10);
      if(!images.length&&validGameUrl(g.thumbnail_url||""))images.push(g.thumbnail_url);
-     if(!images.length&&validGameUrl(g.icon_url||g.icon||""))images.push(g.icon_url||g.icon);
-     const image=images[0]||"";
-     const thumb=image?'<img src="'+escapeHtml(image)+'" alt="'+title+' thumbnail" loading="lazy">':"🎮";
+     const iconUrl=validGameUrl(g.icon_url||g.icon||"")?(g.icon_url||g.icon):"";
+     const thumb=iconUrl?'<img src="'+escapeHtml(iconUrl)+'" data-icon-src="'+escapeHtml(iconUrl)+'" alt="'+title+' icon" loading="lazy">':"🎮";
      const imageData=escapeHtml(JSON.stringify(images));
      const rating=Number(g.average_rating||g.rating||0);
      const tagMarkup=getGameGenres(g).slice(0,3).map(t=>'<span class="game-tag">'+escapeHtml(t)+'</span>').join("");
      const controls=images.length>1?'<div class="game-thumbnail-controls"><button type="button" aria-label="Previous thumbnail" onclick="event.stopPropagation();cycleGameThumbnail(this.closest(\'.game-card\'),-1)">‹</button><button type="button" aria-label="Next thumbnail" onclick="event.stopPropagation();cycleGameThumbnail(this.closest(\'.game-card\'),1)">›</button></div>':"";
      return '<article class="game-card '+(images.length>1?'has-thumbnail-gallery':'')+'" data-thumbnails="'+imageData+'" data-thumbnail-index="0" onmouseenter="startGameThumbnailCycle(this)" onmouseleave="stopGameThumbnailCycle(this)" tabindex="0" role="button" aria-label="View '+title+'" onclick="openGameDetails(\''+g.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGameDetails(\''+g.id+'\')}"><div class="game-thumb">'+thumb+controls+'</div><div class="game-card-body"><div class="game-title">'+title+'</div><div class="game-card-tags">'+tagMarkup+'</div><div class="game-card-rating">'+(rating>0?'★ '+rating.toFixed(1):'☆ Not rated')+'</div></div></article>';
-   };window.cycleGameThumbnail=function(card,delta){if(!card)return;let images=[];try{images=JSON.parse(card.dataset.thumbnails||"[]")}catch(_){}if(images.length<2)return;const next=(Number(card.dataset.thumbnailIndex||0)+delta+images.length)%images.length;card.dataset.thumbnailIndex=String(next);const img=card.querySelector(".game-thumb img");if(img)img.src=images[next];};
-   window.startGameThumbnailCycle=function(card){window.stopGameThumbnailCycle(card);let images=[];try{images=JSON.parse(card.dataset.thumbnails||"[]")}catch(_){}if(images.length>1)card._thumbnailCycle=setInterval(()=>window.cycleGameThumbnail(card,1),1700);};
-   window.stopGameThumbnailCycle=function(card){if(card&&card._thumbnailCycle){clearInterval(card._thumbnailCycle);card._thumbnailCycle=null;}};
+   };window.cycleGameThumbnail=function(card,delta){if(!card)return;let images=[];try{images=JSON.parse(card.dataset.thumbnails||"[]")}catch(_){}if(!images.length)return;const next=(Number(card.dataset.thumbnailIndex||0)+delta+images.length)%images.length;card.dataset.thumbnailIndex=String(next);const img=card.querySelector(".game-thumb img");if(img)img.src=images[next];};
+   window.startGameThumbnailCycle=function(card){if(!card)return;window.stopGameThumbnailCycle(card);let images=[];try{images=JSON.parse(card.dataset.thumbnails||"[]")}catch(_){}const img=card.querySelector(".game-thumb img");if(images.length&&img){card.dataset.thumbnailIndex="0";img.src=images[0];img.alt="Game thumbnail";}if(images.length>1)card._thumbnailCycle=setInterval(()=>window.cycleGameThumbnail(card,1),1700);};
+   window.stopGameThumbnailCycle=function(card){if(!card)return;if(card._thumbnailCycle){clearInterval(card._thumbnailCycle);card._thumbnailCycle=null;}const img=card.querySelector(".game-thumb img");if(img&&img.dataset.iconSrc){img.src=img.dataset.iconSrc;img.alt="Game icon";}card.dataset.thumbnailIndex="0";};
    window.renderGames=function(filter=""){
     const q=String(filter||"").trim().toLocaleLowerCase();
     renderGameCollections(q);
