@@ -299,9 +299,12 @@ body:has(.deluxe-sidebar:hover) .deluxe-sidebar,body:has(.deluxe-sidebar:focus-w
 .game-discovery-grid .game-title{font-size:15px!important;font-weight:850;color:white!important}
 .game-discovery-grid .game-card-actions{display:none!important}
 .game-card-rating{font-size:12px;font-weight:800;color:#facc15}.game-card-tags{display:flex;flex-wrap:wrap;gap:4px}.game-card-tags .game-tag{font-size:10px;padding:4px 7px;margin:0}
-.game-hover-promo{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;pointer-events:none;transition:opacity .2s;z-index:1;background:#000}
-.game-hover-promo iframe{width:100%;height:100%;border:0;pointer-events:none}
-.game-card:hover .game-hover-promo{opacity:1}.game-card:hover .game-thumb{opacity:.18}
+.game-thumbnail-controls{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:space-between;padding:8px;opacity:0;pointer-events:none;transition:opacity .18s}
+.game-card:hover .game-thumbnail-controls,.game-card:focus-within .game-thumbnail-controls{opacity:1;pointer-events:auto}
+.game-thumbnail-controls button{width:29px;height:29px;border:1px solid #ffffff55;border-radius:50%;background:#090b10c9;color:#fff;font-size:17px;display:grid;place-items:center;cursor:pointer}
+.game-thumbnail-controls button:hover{background:var(--accent)}
+.game-discovery-grid .game-card{transition:aspect-ratio .2s ease,transform .2s ease,border-color .18s,box-shadow .18s}
+.game-discovery-grid .game-card.has-thumbnail-gallery:hover{aspect-ratio:16/9;transform:scale(1.04);z-index:6}
 .game-card .game-card-body{z-index:3}
 #allGames .game-discovery-grid,
     #deluxeClassics .game-discovery-grid{grid-auto-flow:row;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));grid-auto-columns:auto}
@@ -619,8 +622,7 @@ function loadFromDeluxe(onLoaded) {
 // Example: saveToDeluxe({ level: 4, coins: 120 });</code></pre>
             <p class="game-genre-editor-note">Call <b>saveToDeluxe(yourSaveObject)</b> whenever the player makes progress, and use <b>loadFromDeluxe(data =&gt; ...)</b> when the game starts. Only save JSON data, and ask the player to sign in to Deluxe.</p>
           </details>
-          <label class="small-note" for="gameThumbnail">Thumbnail image URL</label>
-          <input id="gameThumbnail" class="field" type="url" placeholder="https://example.com/thumbnail.png">
+          <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:14px"><h3 style="margin:0 0 6px">Game thumbnail images</h3><p class="game-genre-editor-note">Add up to 10 image URLs. Hover over a game to see a wide preview that cycles through these images.</p><div class="game-thumbnail-url-list"><label class="small-note" for="gameThumbnail1">Thumbnail image 1</label><input id="gameThumbnail1" class="field" type="url" placeholder="https://example.com/image-1.jpg"><label class="small-note" for="gameThumbnail2">Thumbnail image 2</label><input id="gameThumbnail2" class="field" type="url" placeholder="https://example.com/image-2.jpg"><label class="small-note" for="gameThumbnail3">Thumbnail image 3</label><input id="gameThumbnail3" class="field" type="url" placeholder="https://example.com/image-3.jpg"><label class="small-note" for="gameThumbnail4">Thumbnail image 4</label><input id="gameThumbnail4" class="field" type="url" placeholder="https://example.com/image-4.jpg"><label class="small-note" for="gameThumbnail5">Thumbnail image 5</label><input id="gameThumbnail5" class="field" type="url" placeholder="https://example.com/image-5.jpg"><label class="small-note" for="gameThumbnail6">Thumbnail image 6</label><input id="gameThumbnail6" class="field" type="url" placeholder="https://example.com/image-6.jpg"><label class="small-note" for="gameThumbnail7">Thumbnail image 7</label><input id="gameThumbnail7" class="field" type="url" placeholder="https://example.com/image-7.jpg"><label class="small-note" for="gameThumbnail8">Thumbnail image 8</label><input id="gameThumbnail8" class="field" type="url" placeholder="https://example.com/image-8.jpg"><label class="small-note" for="gameThumbnail9">Thumbnail image 9</label><input id="gameThumbnail9" class="field" type="url" placeholder="https://example.com/image-9.jpg"><label class="small-note" for="gameThumbnail10">Thumbnail image 10</label><input id="gameThumbnail10" class="field" type="url" placeholder="https://example.com/image-10.jpg"></div></div>
           <label class="small-note" for="gameIcon">Game icon URL (optional)</label>
           <input id="gameIcon" class="field" type="url" placeholder="https://example.com/icon.png">
           <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:14px">
@@ -633,12 +635,9 @@ function loadFromDeluxe(onLoaded) {
           </div>
           <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:14px">
             <h3 style="margin:0 0 6px">Promo videos</h3>
-            <p class="game-genre-editor-note">Add up to 5 YouTube video links. They'll play right on your game's detail page. You can leave any field empty.</p>
+            <p class="game-genre-editor-note">Add up to 2 YouTube video links. They'll appear on your game's detail page.</p>
             <label class="small-note" for="gamePromoVideo1">YouTube video 1</label><input id="gamePromoVideo1" type="url" placeholder="https://www.youtube.com/watch?v=…">
             <label class="small-note" for="gamePromoVideo2">YouTube video 2</label><input id="gamePromoVideo2" type="url" placeholder="https://youtu.be/…">
-            <label class="small-note" for="gamePromoVideo3">YouTube video 3</label><input id="gamePromoVideo3" type="url" placeholder="https://www.youtube.com/watch?v=…">
-            <label class="small-note" for="gamePromoVideo4">YouTube video 4</label><input id="gamePromoVideo4" type="url" placeholder="https://youtu.be/…">
-            <label class="small-note" for="gamePromoVideo5">YouTube video 5</label><input id="gamePromoVideo5" type="url" placeholder="https://www.youtube.com/watch?v=…">
           </div>
           <label class="small-note" style="display:flex;align-items:center;gap:8px;margin:12px 0"><input id="gameChatEnabled" type="checkbox" checked style="width:auto;margin:0;padding:0"> Allow game chat</label>
           <div id="gameFormMessage" class="auth-message" role="status" aria-live="polite"></div>
@@ -2263,7 +2262,7 @@ function loadFromDeluxe(onLoaded) {
     if (!sb) return;
     $("gameGrid").innerHTML = '<div class="loading">Loading games…</div>';
 
-    let publicQuery = sb.from("games").select("id,title,description,thumbnail_url,icon_url,discord_url,fandom_url,promo_videos,game_url,status,created_at,updated_at,creator_id,chat_enabled,tags,age_recommendation,total_playtime,profiles(username)");
+    let publicQuery = sb.from("games").select("id,title,description,thumbnail_url,thumbnail_images,icon_url,discord_url,fandom_url,promo_videos,game_url,status,created_at,updated_at,creator_id,chat_enabled,tags,age_recommendation,total_playtime,profiles(username)");
     if(currentRole!=="bugtester" && currentRole!=="admin")publicQuery=publicQuery.eq("status","published");
     const publicResult = await publicQuery.order("created_at",{ascending:false});
 
@@ -2407,7 +2406,9 @@ function loadFromDeluxe(onLoaded) {
     const title=$("gameTitle").value.trim();
     const description=$("gameDescription").value.trim();
     const age_recommendation=$("gameAgeRecommendation").value;
-    const thumbnail_url=$("gameThumbnail").value.trim();
+    const thumbnailResult=readGameThumbnails();
+    const thumbnail_images=thumbnailResult.images;
+    const thumbnail_url=thumbnail_images[0]||null;
     const icon_url=$("gameIcon").value.trim();
     const tags=parseGameGenres($("gameGenres").value);
     const game_url=$("gameUrl").value.trim();
@@ -2416,14 +2417,14 @@ function loadFromDeluxe(onLoaded) {
     const promo_videos=readGamePromoVideos();
     if(discord_url && !validGameUrl(discord_url)) return setGameFormMessage("Enter a valid Discord URL.",true);
     if(fandom_url && !validGameUrl(fandom_url)) return setGameFormMessage("Enter a valid Fandom URL.",true);
-    if(promo_videos.invalid) return setGameFormMessage("Promo videos must be valid YouTube video links.",true);
+    if(promo_videos.invalid) return setGameFormMessage("Promo videos must be valid YouTube video links (maximum 2).",true);
+    if(thumbnailResult.invalid) return setGameFormMessage("Thumbnail images must be valid HTTP or HTTPS URLs.",true);
     if(!title) return setGameFormMessage("Enter a game title.",true);
     if(!validGameUrl(game_url)) return setGameFormMessage("Enter a valid HTTP or HTTPS game URL.",true);
-    if(thumbnail_url && !validGameUrl(thumbnail_url)) return setGameFormMessage("The thumbnail URL must be HTTP or HTTPS.",true);
     if(icon_url && !validGameUrl(icon_url)) return setGameFormMessage("The icon URL must be HTTP or HTTPS.",true);
     $("submitGameButton").disabled=true;
     setGameFormMessage("Submitting game…");
-    const {error}=await sb.from("games").insert({creator_id:currentUser.id,title,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:thumbnail_url||null,icon_url:icon_url||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,status:"pending"});
+    const {error}=await sb.from("games").insert({creator_id:currentUser.id,title,description,tags,age_recommendation:age_recommendation||null,thumbnail_url,thumbnail_images,icon_url:icon_url||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,status:"pending"});
     $("submitGameButton").disabled=false;
     if(error){console.error(error);return setGameFormMessage(error.message,true);}
     $("gameForm").reset();
@@ -2454,13 +2455,14 @@ function loadFromDeluxe(onLoaded) {
     $("gameDescription").value = game.description || "";
     $("gameGenres").value = getGameGenres(game).join(", ");
     $("gameAgeRecommendation").value = game.age_recommendation || game.age_rating || "";
-    $("gameThumbnail").value = game.thumbnail_url || "";
+    const existingThumbnails=Array.isArray(game.thumbnail_images)&&game.thumbnail_images.length?game.thumbnail_images:(game.thumbnail_url?[game.thumbnail_url]:[]);
+    for(let i=1;i<=10;i++) $("gameThumbnail"+i).value=existingThumbnails[i-1]||"";
     $("gameIcon").value = game.icon_url || "";
     $("gameUrl").value = game.game_url || "";
     $("gameDiscordUrl").value = game.discord_url || "";
     $("gameFandomUrl").value = game.fandom_url || "";
     const existingPromoVideos = Array.isArray(game.promo_videos) ? game.promo_videos : [];
-    for(let i=1;i<=5;i++) $("gamePromoVideo"+i).value = existingPromoVideos[i-1] || "";
+    for(let i=1;i<=2;i++) $("gamePromoVideo"+i).value = existingPromoVideos[i-1] || "";
     $("gameChatEnabled").checked = game.chat_enabled !== false;
     $("gameFormMessage").textContent = "";
     $("gameUploader").classList.remove("hidden");
@@ -2478,7 +2480,8 @@ function loadFromDeluxe(onLoaded) {
     $("gameAgeRecommendation").value = "";
     $("gameDiscordUrl").value = "";
     $("gameFandomUrl").value = "";
-    for(let i=1;i<=5;i++) $("gamePromoVideo"+i).value = "";
+    for(let i=1;i<=2;i++) $("gamePromoVideo"+i).value = "";
+    for(let i=1;i<=10;i++) $("gameThumbnail"+i).value = "";
     $("gameFormMessage").textContent = "";
   }
 
@@ -2497,7 +2500,7 @@ function loadFromDeluxe(onLoaded) {
   }
   function readGamePromoVideos(){
     const videos=[];
-    for(let i=1;i<=5;i++){
+    for(let i=1;i<=2;i++){
       const value=$("gamePromoVideo"+i).value.trim();
       if(!value) continue;
       const id=youtubeVideoId(value);
@@ -2507,11 +2510,24 @@ function loadFromDeluxe(onLoaded) {
     return {videos,invalid:false};
   }
 
+  function readGameThumbnails(){
+    const images=[];
+    for(let i=1;i<=10;i++){
+      const value=$("gameThumbnail"+i).value.trim();
+      if(!value) continue;
+      if(!validGameUrl(value)) return {images:[],invalid:true};
+      if(!images.includes(value)) images.push(value);
+    }
+    return {images,invalid:false};
+  }
+
   async function updateGame(id){
     const title = $("gameTitle").value.trim();
     const description = $("gameDescription").value.trim();
     const age_recommendation = $("gameAgeRecommendation").value;
-    const thumbnail_url = $("gameThumbnail").value.trim();
+    const thumbnailResult=readGameThumbnails();
+    const thumbnail_images=thumbnailResult.images;
+    const thumbnail_url=thumbnail_images[0]||null;
     const icon_url = $("gameIcon").value.trim();
     const tags = parseGameGenres($("gameGenres").value);
     const game_url = $("gameUrl").value.trim();
@@ -2520,14 +2536,14 @@ function loadFromDeluxe(onLoaded) {
     const promo_videos = readGamePromoVideos();
     if (discord_url && !validGameUrl(discord_url)) return setGameFormMessage("Enter a valid Discord URL.", true);
     if (fandom_url && !validGameUrl(fandom_url)) return setGameFormMessage("Enter a valid Fandom URL.", true);
-    if (promo_videos.invalid) return setGameFormMessage("Promo videos must be valid YouTube video links.", true);
+    if (promo_videos.invalid) return setGameFormMessage("Promo videos must be valid YouTube video links (maximum 2).", true);
+    if (thumbnailResult.invalid) return setGameFormMessage("Thumbnail images must be valid HTTP or HTTPS URLs.", true);
     if (!title) return setGameFormMessage("Enter a game title.", true);
     if (!validGameUrl(game_url)) return setGameFormMessage("Enter a valid HTTP or HTTPS game URL.", true);
-    if (thumbnail_url && !validGameUrl(thumbnail_url)) return setGameFormMessage("The thumbnail URL must be HTTP or HTTPS.", true);
     if (icon_url && !validGameUrl(icon_url)) return setGameFormMessage("The icon URL must be HTTP or HTTPS.", true);
     $("submitGameButton").disabled=true;
     setGameFormMessage("Saving changes…");
-    const {error} = await sb.from("games").update({title,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:thumbnail_url||null,icon_url:icon_url||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
+    const {error} = await sb.from("games").update({title,description,tags,age_recommendation:age_recommendation||null,thumbnail_url,thumbnail_images,icon_url:icon_url||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
     $("submitGameButton").disabled=false;
     if (error) return setGameFormMessage(error.message,true);
     $("gameUploader").classList.add("hidden");
@@ -3742,14 +3758,21 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
     document.addEventListener("keydown",e=>{if(e.key==="/"&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName||"")){if(!oldToast.classList.contains("hidden")){e.preventDefault();window.showPage("inbox");}}});
   }
   window.renderLibraryCard=function(g){
-    const title=escapeHtml(g.title||"Untitled Game"),image=g.icon_url||g.icon||"";
-    const thumb=image&&validGameUrl(image)?'<img src="'+escapeHtml(image)+'" alt="'+title+' icon" loading="lazy">':"🎮";
-    const promo=Array.isArray(g.promo_videos)?g.promo_videos[0]:"";
-    const promoId=/^[A-Za-z0-9_-]{11}$/.test(promo||"")?promo:"";
-    const rating=Number(g.average_rating||g.rating||0);const tagMarkup=getGameGenres(g).slice(0,3).map(t=>'<span class="game-tag">'+escapeHtml(t)+'</span>').join("");
-    return '<article class="game-card" onmouseenter="const f=this.querySelector(\'.game-hover-promo iframe\');if(f&&f.src===\'about:blank\')f.src=f.dataset.previewSrc" onmouseleave="const f=this.querySelector(\'.game-hover-promo iframe\');if(f)f.src=\'about:blank\'" tabindex="0" role="button" aria-label="View '+title+'" onclick="openGameDetails(\''+g.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGameDetails(\''+g.id+'\')}"><div class="game-thumb">'+thumb+'</div>'+(promoId?'<div class="game-hover-promo"><iframe loading="lazy" src="about:blank" data-preview-src="https://www.youtube-nocookie.com/embed/'+promoId+'?autoplay=1&mute=1&controls=0&loop=1&playlist='+promoId+'&playsinline=1" title="Muted game preview" allow="autoplay; encrypted-media"></iframe></div>':'')+'<div class="game-card-body"><div class="game-title">'+title+'</div><div class="game-card-tags">'+tagMarkup+'</div><div class="game-card-rating">'+(rating>0?'★ '+rating.toFixed(1):'☆ Not rated')+'</div></div></article>';
-  };
-  window.renderGames=function(filter=""){
+     const title=escapeHtml(g.title||"Untitled Game");
+     const images=(Array.isArray(g.thumbnail_images)?g.thumbnail_images:[]).filter(validGameUrl).slice(0,10);
+     if(!images.length&&validGameUrl(g.thumbnail_url||""))images.push(g.thumbnail_url);
+     if(!images.length&&validGameUrl(g.icon_url||g.icon||""))images.push(g.icon_url||g.icon);
+     const image=images[0]||"";
+     const thumb=image?'<img src="'+escapeHtml(image)+'" alt="'+title+' thumbnail" loading="lazy">':"🎮";
+     const imageData=escapeHtml(JSON.stringify(images));
+     const rating=Number(g.average_rating||g.rating||0);
+     const tagMarkup=getGameGenres(g).slice(0,3).map(t=>'<span class="game-tag">'+escapeHtml(t)+'</span>').join("");
+     const controls=images.length>1?'<div class="game-thumbnail-controls"><button type="button" aria-label="Previous thumbnail" onclick="event.stopPropagation();cycleGameThumbnail(this.closest(\'.game-card\'),-1)">‹</button><button type="button" aria-label="Next thumbnail" onclick="event.stopPropagation();cycleGameThumbnail(this.closest(\'.game-card\'),1)">›</button></div>':"";
+     return '<article class="game-card '+(images.length>1?'has-thumbnail-gallery':'')+'" data-thumbnails="'+imageData+'" data-thumbnail-index="0" onmouseenter="startGameThumbnailCycle(this)" onmouseleave="stopGameThumbnailCycle(this)" tabindex="0" role="button" aria-label="View '+title+'" onclick="openGameDetails(\''+g.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGameDetails(\''+g.id+'\')}"><div class="game-thumb">'+thumb+controls+'</div><div class="game-card-body"><div class="game-title">'+title+'</div><div class="game-card-tags">'+tagMarkup+'</div><div class="game-card-rating">'+(rating>0?'★ '+rating.toFixed(1):'☆ Not rated')+'</div></div></article>';
+   };window.cycleGameThumbnail=function(card,delta){if(!card)return;let images=[];try{images=JSON.parse(card.dataset.thumbnails||"[]")}catch(_){}if(images.length<2)return;const next=(Number(card.dataset.thumbnailIndex||0)+delta+images.length)%images.length;card.dataset.thumbnailIndex=String(next);const img=card.querySelector(".game-thumb img");if(img)img.src=images[next];};
+   window.startGameThumbnailCycle=function(card){window.stopGameThumbnailCycle(card);let images=[];try{images=JSON.parse(card.dataset.thumbnails||"[]")}catch(_){}if(images.length>1)card._thumbnailCycle=setInterval(()=>window.cycleGameThumbnail(card,1),1700);};
+   window.stopGameThumbnailCycle=function(card){if(card&&card._thumbnailCycle){clearInterval(card._thumbnailCycle);card._thumbnailCycle=null;}};
+   window.renderGames=function(filter=""){
     const q=String(filter||"").trim().toLocaleLowerCase();
     renderGameCollections(q);
     const games=allPublishedGames.filter(g=>{if(!q)return true;const genres=getGameGenres(g);return [g.title,g.description,g.profiles?.username,...genres].some(v=>String(v||"").toLocaleLowerCase().includes(q));});
@@ -3775,7 +3798,7 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
     const discord=validGameUrl(g.discord_url||"")?'<a href="'+escapeHtml(g.discord_url)+'" target="_blank" rel="noopener" title="Discord"><img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/discord-color-icon.png" alt="Discord"></a>':"";
     const fandom=validGameUrl(g.fandom_url||"")?'<a href="'+escapeHtml(g.fandom_url)+'" target="_blank" rel="noopener" title="Fandom"><img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/fandom-urtw5vup5aklqnwhbxh08.png/fandom-wg2s5caqd65tbyuyrpcfc.png?_a=DATAiZAAZAA0" alt="Fandom"></a>':"";
     const edit=isOwner?'<button type="button" onclick="editMyGame(\''+g.id+'\')" title="Edit game">✎</button>':"";
-    const videos=(Array.isArray(g.promo_videos)?g.promo_videos:[]).filter(v=>/^[A-Za-z0-9_-]{11}$/.test(v)).slice(0,5);
+    const videos=(Array.isArray(g.promo_videos)?g.promo_videos:[]).filter(v=>/^[A-Za-z0-9_-]{11}$/.test(v)).slice(0,2);
     const promo=videos.length?'<section class="game-detail-promo"><div class="section-heading"><h2>Promo videos</h2></div><div class="game-promo-grid">'+videos.map((v,i)=>'<div class="game-promo-card"><div class="game-promo-frame"><iframe src="https://www.youtube-nocookie.com/embed/'+v+'" title="'+title+' promo '+(i+1)+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div></div>').join("")+'</div></section>':"";
     $id("gameDetailRoot").innerHTML='<div class="game-detail-revamp-head"><div><div class="game-detail-title-row"><h1>'+title+'</h1><div class="game-detail-title-actions">'+discord+fandom+edit+'</div></div><button class="secondary game-detail-back" onclick="showPage(\'games\')">← Back</button><div class="game-detail-tags">'+(tags||'<span class="game-tag">No tags</span>')+'</div></div><div class="game-detail-description-card"><h3>About this game</h3><p>'+description+'</p><div class="game-detail-rating">'+(rating>0?'★ '+rating.toFixed(1)+' / 5':'☆ Not rated yet')+'</div><div class="game-age-rating">Age rating: '+escapeHtml(g.age_recommendation||g.age_rating||"Not specified")+'</div><div class="small-note">Created by '+escapeHtml(g.profiles?.username||"Unknown creator")+'</div></div></div>'+promo+'<button class="game-detail-play" aria-label="Play game" title="Play game" onclick="playGameFromDetails(\''+g.id+'\')">▶</button>';
     showPage("gameDetail");loadSeasonalPurchasesForGame(id);
