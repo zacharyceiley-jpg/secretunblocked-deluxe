@@ -2486,6 +2486,8 @@ function loadFromDeluxe(onLoaded) {
   }
 
   function youtubeVideoId(value){
+    const raw=String(value||"").trim();
+    if(/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw;
     try{
       const url = new URL(value);
       const host = url.hostname.toLowerCase().replace(/^www\./,"");
