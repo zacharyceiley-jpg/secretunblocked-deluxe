@@ -208,13 +208,6 @@ main{max-width:1200px;margin:auto;padding:50px 28px 90px}
     @media(max-width:760px){.admin-tools-grid{grid-template-columns:1fr}}
 
 
-    /* Site Pilot AI */
-    #sitePilotLauncher{position:fixed;right:22px;bottom:22px;z-index:10000;border:0;border-radius:999px;padding:13px 18px;background:linear-gradient(135deg,#7865ff,#4c8dff);color:#fff;font-weight:800;box-shadow:0 10px 35px #0008;cursor:pointer}
-    #sitePilotPanel{position:fixed;right:22px;bottom:82px;width:min(390px,calc(100vw - 28px));height:min(590px,calc(100vh - 115px));z-index:10001;background:#11141b;border:1px solid #34394a;border-radius:20px;box-shadow:0 25px 90px #000b;display:flex;flex-direction:column;overflow:hidden;color:#f4f5fb}
-    #sitePilotPanel.hidden{display:none!important}.pilot-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(120deg,#26204c,#172c49);border-bottom:1px solid #34394a}.pilot-head strong{font-size:16px}.pilot-sub{font-size:12px;color:#c5c8e6;margin-top:3px}.pilot-head-actions{display:flex;gap:7px}.pilot-icon{border:1px solid #ffffff30;background:#ffffff12;color:white;border-radius:9px;padding:7px 9px;cursor:pointer}.pilot-tools{display:flex;gap:7px;padding:9px 12px;border-bottom:1px solid #292d39;flex-wrap:wrap}.pilot-tools button{border:1px solid #34394a;background:#1a1e28;color:#e7e9f4;border-radius:8px;padding:7px 9px;cursor:pointer;font-size:12px}.pilot-tools button.active{border-color:#8b7cff;color:#c9c2ff}.pilot-messages{padding:13px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:11px}.pilot-msg{max-width:92%;padding:10px 12px;border-radius:13px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45;font-size:14px}.pilot-msg.assistant{align-self:flex-start;background:#202532;border:1px solid #34394a}.pilot-msg.user{align-self:flex-end;background:#5144ad;color:white}.pilot-msg small{display:block;opacity:.65;font-size:10px;margin-bottom:4px}.pilot-compose{display:flex;gap:8px;padding:12px;border-top:1px solid #292d39}.pilot-compose input{min-width:0;flex:1;background:#090b10;border:1px solid #363b4b;border-radius:10px;color:#fff;padding:11px;outline:none}.pilot-compose button{border:0;background:#7563ff;color:#fff;border-radius:10px;padding:0 14px;font-weight:800;cursor:pointer}.pilot-compose button:disabled{opacity:.5;cursor:wait}.pilot-status{font-size:11px;color:#a9aec1;padding:0 13px 9px}.pilot-welcome{color:#bfc4d5;font-size:13px;line-height:1.5;padding:8px 2px}
-    @media(max-width:520px){#sitePilotLauncher{right:12px;bottom:12px}#sitePilotPanel{right:8px;bottom:68px;width:calc(100vw - 16px);height:min(620px,calc(100vh - 85px))}
-}
-
 /* Deluxe Light Mode */
 body.light-mode{--bg:#f4f6fb;--panel:#ffffff;--panel2:#edf0f7;--line:#d9deea;--text:#182033;--muted:#626d80;--accent:#6550d9;--accent2:#5946c4;background-color:var(--bg);background-image:radial-gradient(circle at 80% -10%,rgba(124,92,255,.10),transparent 32%),radial-gradient(circle at 10% 30%,rgba(61,118,255,.06),transparent 28%);color:var(--text)}
 body.light-mode .topbar{background:rgba(255,255,255,.9)}
@@ -3817,14 +3810,6 @@ flushDeluxePlayTracking();
     </section>
   </div>
 
-  <button id="sitePilotLauncher" type="button" aria-controls="sitePilotPanel" aria-expanded="false">✦ Site Pilot AI</button>
-  <section id="sitePilotPanel" class="hidden" aria-label="Site Pilot AI chat" aria-live="polite">
-    <header class="pilot-head"><div><strong>✦ Site Pilot AI</strong><div class="pilot-sub">Your guide to Secret Unblocked Deluxe</div></div><div class="pilot-head-actions"><button class="pilot-icon" id="pilotStopSpeech" title="Stop speaking" aria-label="Stop speaking">■</button><button class="pilot-icon" id="pilotClose" aria-label="Close Site Pilot AI">✕</button></div></header>
-    <div class="pilot-tools"><button id="pilotSpeechToggle" class="active" type="button" aria-pressed="true">🔊 Read replies: On</button><button id="pilotClear" type="button">Clear chat</button></div>
-    <div id="pilotMessages" class="pilot-messages"><div class="pilot-welcome">Hey! I'm Site Pilot AI. Ask me about the site, where to find things, or anything else. Turn on your sound to hear my replies read aloud!</div></div>
-    <div id="pilotStatus" class="pilot-status">Ready when you are.</div>
-    <form id="pilotForm" class="pilot-compose"><input id="pilotInput" maxlength="1200" autocomplete="off" placeholder="Ask Site Pilot…" aria-label="Message Site Pilot AI" required><button id="pilotSend" type="submit">Send</button></form>
-  </section>
 
   <script>
   (() => {
@@ -3854,69 +3839,7 @@ flushDeluxePlayTracking();
   })();
   </script>
 
-  <script>
-  (() => {
-    const $p = id => document.getElementById(id);
-    const panel = $p('sitePilotPanel'), launcher = $p('sitePilotLauncher');
-    const messagesEl = $p('pilotMessages'), statusEl = $p('pilotStatus'), input = $p('pilotInput');
-    let history = [], speechEnabled = true, busy = false;
-    function setPanel(open) { panel.classList.toggle('hidden', !open); launcher.setAttribute('aria-expanded', String(open)); if(open) input.focus(); }
-    function stopSpeech(){ if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
-    function speak(text){ if(!speechEnabled || !('speechSynthesis' in window)) return; stopSpeech(); const u=new SpeechSynthesisUtterance(text); u.rate=1; u.pitch=1; window.speechSynthesis.speak(u); }
-    function addMessage(role, text, shouldSpeak=false){ const bubble=document.createElement('div'); bubble.className='pilot-msg '+role; const label=document.createElement('small'); label.textContent=role==='user'?'You':'Site Pilot AI'; const content=document.createElement('div'); content.textContent=text; bubble.append(label,content); messagesEl.appendChild(bubble); messagesEl.scrollTop=messagesEl.scrollHeight; if(shouldSpeak) speak(text); }
-    function setBusy(value){ busy=value; $p('pilotSend').disabled=value; input.disabled=value; statusEl.textContent=value?'Site Pilot is thinking…':'Ready when you are.'; }
-    // Send only public interface labels and the current page URL, never form values or message contents.
-    function buildSiteContext(){
-      const features = new Set();
-      const add = (kind, value) => {
-        const label = String(value || '').replace(/\s+/g, ' ').trim().slice(0, 120);
-        if(label && !/^[0-9\s.,!?]+$/.test(label)) features.add(kind + ': ' + label);
-      };
-      document.querySelectorAll('.page').forEach(page => {
-        if(page.id) add('Section', page.id);
-      });
-      const selector = '.nav a, nav a, .page h1, .page h2, .page h3, .page button, .page [role="button"], .page input[placeholder], .page textarea[placeholder], .page select';
-      document.querySelectorAll(selector).forEach(node => {
-        if(node.closest('#sitePilotPanel, #pilotMessages, .game-card, .user-card, .social-post, .chat-message, .message-item, .notification-item')) return;
-        const label = node.getAttribute('aria-label') || node.getAttribute('title') || node.getAttribute('placeholder') || node.textContent;
-        const value = String(label || '').trim();
-        if(!value) return;
-        const kind = node.matches('h1,h2,h3') ? 'Heading' : node.matches('a') ? 'Navigation' : 'Control';
-        let detail = value;
-        if(node.matches('a')){
-          try{
-            const target = new URL(node.getAttribute('href') || '', window.location.href);
-            if(target.origin === window.location.origin) detail += ' (' + target.pathname + target.hash + ')';
-          }catch(_){}
-        }
-        add(kind, detail);
-      });
-      return {
-        url: window.location.origin + window.location.pathname,
-        title: document.title,
-        features: Array.from(features).slice(0, 80)
-      };
-    }
-    launcher.addEventListener('click',async()=>{if(!currentUser){setPanel(true);addMessage('assistant','Please sign in to unlock Site Pilot.');return;}if(!window.deluxPilotUnlocked){const ok=confirm('Unlock Site Pilot forever for 5 Delubux?');if(!ok)return;const {data,error}=await sb.rpc('delubux_unlock_site_pilot');if(error){alert(error.message);return;}delubuxBalance=Number(data.balance||0);window.deluxPilotUnlocked=true;updateDelubuxBalance();}setPanel(panel.classList.contains('hidden'));}); $p('pilotClose').addEventListener('click',()=>setPanel(false)); $p('pilotStopSpeech').addEventListener('click',stopSpeech);
-    $p('pilotSpeechToggle').addEventListener('click',()=>{ speechEnabled=!speechEnabled; const b=$p('pilotSpeechToggle'); b.classList.toggle('active',speechEnabled); b.setAttribute('aria-pressed',String(speechEnabled)); b.textContent=speechEnabled?'🔊 Read replies: On':'🔇 Read replies: Off'; if(!speechEnabled) stopSpeech(); });
-    $p('pilotClear').addEventListener('click',()=>{stopSpeech();history=[];messagesEl.replaceChildren();const w=document.createElement('div');w.className='pilot-welcome';w.textContent='Chat cleared! What can I help you with?';messagesEl.appendChild(w);statusEl.textContent='Ready when you are.';});
-    $p('pilotForm').addEventListener('submit',async e=>{
-      e.preventDefault(); if(busy) return; const prompt=input.value.trim(); if(!prompt) return;
-      if(typeof sb === 'undefined' || !SUPABASE_URL || !SUPABASE_ANON_KEY){statusEl.textContent='AI setup is still loading. Refresh and try again.';return;}
-      let sessionResult; try { sessionResult=await sb.auth.getSession(); } catch(_){ sessionResult=null; }
-      const session=sessionResult?.data?.session;
-      if(!session?.access_token){addMessage('assistant','Please sign in first so I can securely connect to the AI. Your account session is required.');statusEl.textContent='Sign in required.';return;}
-      if(!window.deluxPilotUnlocked){addMessage("assistant","Unlock Site Pilot for 5 Delubux to use it forever.");return;}
-      addMessage('user',prompt); input.value=''; history.push({role:'user',content:prompt}); setBusy(true);      addMessage('user',prompt); input.value=''; history.push({role:'user',content:prompt}); setBusy(true);
-      try{
-        const response=await fetch(SUPABASE_URL+'/functions/v1/site-pilot-ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_ANON_KEY},body:JSON.stringify({messages:history,siteContext:buildSiteContext()})});
-        const data=await response.json().catch(()=>({})); if(!response.ok) throw new Error(data.error||'Could not reach Site Pilot AI. Please try again.');
-        const reply=String(data.reply||'I didn’t get a reply that time. Try again.'); history.push({role:'assistant',content:reply}); history=history.slice(-12); addMessage('assistant',reply,true);
-      }catch(err){const msg=err?.message||'Something went wrong. Please try again.'; addMessage('assistant',msg);history.pop();}
-      finally{setBusy(false);input.focus();}
-    });
-  })();
-  </script>
+
 
 
 <script id="deluxeSocialLogic">
