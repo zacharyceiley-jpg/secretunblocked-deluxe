@@ -2173,7 +2173,7 @@ function loadFromDeluxe(onLoaded) {
       ((!discordUrl && !fandomUrl) ? '<span class="game-meta">No community links added yet.</span>' : '') + '</div>';
     const description = $("gameDetailRoot").querySelector(".game-detail-description");
     if (description) description.insertAdjacentHTML("afterend", linksMarkup);
-    const promoVideos = Array.isArray(g.promo_videos) ? g.promo_videos.filter(id => /^[A-Za-z0-9_-]{11}$/.test(id)).slice(0,5) : [];
+    const promoVideos = Array.isArray(g.promo_videos) ? g.promo_videos.map(youtubeVideoId).filter(Boolean).slice(0,5) : [];
     if(promoVideos.length){
       const promoMarkup = '<section class="game-promo-section"><div class="section-heading"><div><p class="eyebrow">WATCH</p><h2>Promo Videos</h2></div></div><div class="game-promo-grid">' +
         promoVideos.map((videoId,index) => '<div class="game-promo-card"><div class="game-promo-frame"><iframe src="https://www.youtube-nocookie.com/embed/' + videoId + '" title="' + escapeHtml(g.title || "Game") + ' promo video ' + (index+1) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><p class="game-meta">Promo video ' + (index+1) + '</p></div>').join("") +
@@ -2250,11 +2250,20 @@ function loadFromDeluxe(onLoaded) {
     if (deluxePlayTrackingId && deluxePlayTrackingStarted) flushDeluxePlayTracking();
     deluxePlayTrackingId = id; deluxePlayTrackingStarted = Date.now();
   }
+  function filterDeluxePlaytime() {
+    const query=String($("playtimeSearch")?.value||"").trim().toLocaleLowerCase();
+    const rows=[...document.querySelectorAll("#playtimeRows [data-playtime-title]")];
+    let visible=0;
+    rows.forEach(row=>{const match=row.dataset.playtimeTitle.includes(query);row.style.display=match?"":"none";if(match)visible++;});
+    let empty=$("playtimeSearchEmpty");
+    if(!empty){empty=document.createElement("p");empty.id="playtimeSearchEmpty";empty.textContent="No games match that search."; $("playtimeRows")?.appendChild(empty);}
+    empty.style.display=visible?"none":"";
+  }
   function showDeluxePlaytime() {
     flushDeluxePlayTracking();
     const values = getDeluxePlaytime();
     const rows = [...allPublishedGames].sort((a,b)=>getDeluxePlaySeconds(b.id)-getDeluxePlaySeconds(a.id));
-    $("gameDetailRoot").innerHTML = `<div class="page-title"><button class="secondary" onclick="showPage('games')">← Back to games</button><p class="eyebrow" style="margin-top:18px">YOUR ACTIVITY</p><h1>Playtime</h1><p>Playtime is tracked on this browser.</p></div><div class="admin-list">${rows.map(g=>`<div class="admin-row"><b>${escapeHtml(g.title || "Untitled Game")}</b><span style="float:right">${formatDeluxeTime(values[g.id] || 0)}</span></div>`).join("") || '<p>No games to show yet.</p>'}</div>`;
+    $("gameDetailRoot").innerHTML = `<div class="page-title"><button class="secondary" onclick="showPage('games')">← Back to games</button><p class="eyebrow" style="margin-top:18px">YOUR ACTIVITY</p><h1>Playtime</h1><p>Playtime is tracked on this browser.</p><input id="playtimeSearch" class="game-search" type="search" placeholder="Search games…" aria-label="Search playtime games" oninput="filterDeluxePlaytime()" style="width:100%;max-width:480px;margin:8px 0 18px"><div id="playtimeRows" class="admin-list">${rows.map(g=>`<div class="admin-row" data-playtime-title="${escapeHtml(g.title || "Untitled Game").toLocaleLowerCase()}"><b>${escapeHtml(g.title || "Untitled Game")}</b><span style="float:right">${formatDeluxeTime(values[g.id] || 0)}</span></div>`).join("") || '<p>No games to show yet.</p>'}</div>`;
     showPage("gameDetail");
   }
 
@@ -2462,7 +2471,7 @@ function loadFromDeluxe(onLoaded) {
     $("gameDiscordUrl").value = game.discord_url || "";
     $("gameFandomUrl").value = game.fandom_url || "";
     const existingPromoVideos = Array.isArray(game.promo_videos) ? game.promo_videos : [];
-    for(let i=1;i<=2;i++) $("gamePromoVideo"+i).value = existingPromoVideos[i-1] || "";
+    for(let i=1;i<=2;i++) $("gamePromoVideo"+i).value = existingPromoVideos[i-1] ? youtubeVideoUrl(existingPromoVideos[i-1]) : "";
     $("gameChatEnabled").checked = game.chat_enabled !== false;
     $("gameFormMessage").textContent = "";
     $("gameUploader").classList.remove("hidden");
@@ -2500,6 +2509,12 @@ function loadFromDeluxe(onLoaded) {
       return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : "";
     }catch(_){ return ""; }
   }
+  function youtubeVideoUrl(value){
+    const raw=String(value||"").trim();
+    if(!raw) return "";
+    if(/^[A-Za-z0-9_-]{11}$/.test(raw)) return "https://www.youtube.com/watch?v="+raw;
+    return raw;
+  }
   function readGamePromoVideos(){
     const videos=[];
     for(let i=1;i<=2;i++){
@@ -2507,7 +2522,7 @@ function loadFromDeluxe(onLoaded) {
       if(!value) continue;
       const id=youtubeVideoId(value);
       if(!id) return {videos:[],invalid:true};
-      videos.push(id);
+      videos.push(value);
     }
     return {videos,invalid:false};
   }
