@@ -1339,7 +1339,7 @@ function loadFromDeluxe(onLoaded) {
     }
     if (allRoot) allRoot.innerHTML = '<div class="loading">Loading badges…</div>';
     const [badgeResult, earnedResult, gameResult] = await Promise.all([
-      sb.from("deluxe_badges").select("id,name,image_url,description,condition_type,condition_value,game_id,creator_id").order("created_at", {ascending:false}),
+      sb.from("deluxe_badges").select("id,name,image_url,description,requirement_seconds,condition_type,condition_value,game_id,creator_id").order("created_at", {ascending:false}),
       sb.from("user_badges").select("badge_id,earned_at").eq("user_id", currentUser.id),
       sb.from("games").select("id,title").eq("creator_id", currentUser.id).order("created_at", {ascending:false})
     ]);
