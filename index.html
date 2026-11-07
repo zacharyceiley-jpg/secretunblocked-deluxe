@@ -2256,14 +2256,15 @@ function loadFromDeluxe(onLoaded) {
     let visible=0;
     rows.forEach(row=>{const match=row.dataset.playtimeTitle.includes(query);row.style.display=match?"":"none";if(match)visible++;});
     let empty=$("playtimeSearchEmpty");
-    if(!empty){empty=document.createElement("p");empty.id="playtimeSearchEmpty";empty.textContent="No games match that search."; $("playtimeRows")?.appendChild(empty);}
+    if(!empty){empty=document.createElement("p");empty.id="playtimeSearchEmpty";$("playtimeRows")?.appendChild(empty);}
+    empty.textContent=query?"No games match that search.":"No games to show yet.";
     empty.style.display=visible?"none":"";
   }
   function showDeluxePlaytime() {
     flushDeluxePlayTracking();
     const values = getDeluxePlaytime();
     const rows = [...allPublishedGames].sort((a,b)=>getDeluxePlaySeconds(b.id)-getDeluxePlaySeconds(a.id));
-    $("gameDetailRoot").innerHTML = `<div class="page-title"><button class="secondary" onclick="showPage('games')">← Back to games</button><p class="eyebrow" style="margin-top:18px">YOUR ACTIVITY</p><h1>Playtime</h1><p>Playtime is tracked on this browser.</p><input id="playtimeSearch" class="game-search" type="search" placeholder="Search games…" aria-label="Search playtime games" oninput="filterDeluxePlaytime()" style="width:100%;max-width:480px;margin:8px 0 18px"><div id="playtimeRows" class="admin-list">${rows.map(g=>`<div class="admin-row" data-playtime-title="${escapeHtml(g.title || "Untitled Game").toLocaleLowerCase()}"><b>${escapeHtml(g.title || "Untitled Game")}</b><span style="float:right">${formatDeluxeTime(values[g.id] || 0)}</span></div>`).join("") || '<p>No games to show yet.</p>'}</div>`;
+    $("gameDetailRoot").innerHTML = `<div class="page-title"><button class="secondary" onclick="showPage('games')">← Back to games</button><p class="eyebrow" style="margin-top:18px">YOUR ACTIVITY</p><h1>Playtime</h1><p>Playtime is tracked on this browser.</p><input id="playtimeSearch" class="game-search" type="search" placeholder="Search games…" aria-label="Search playtime games" oninput="filterDeluxePlaytime()" style="width:100%;max-width:480px;margin:8px 0 18px"><div id="playtimeRows" class="admin-list">${rows.map(g=>`<div class="admin-row" data-playtime-title="${escapeHtml(g.title || "Untitled Game").toLocaleLowerCase()}"><b>${escapeHtml(g.title || "Untitled Game")}</b><span style="float:right">${formatDeluxeTime(values[g.id] || 0)}</span></div>`).join("") || '<p id="playtimeSearchEmpty">No games to show yet.</p>'}</div>`;
     showPage("gameDetail");
   }
 
@@ -2522,7 +2523,7 @@ function loadFromDeluxe(onLoaded) {
       if(!value) continue;
       const id=youtubeVideoId(value);
       if(!id) return {videos:[],invalid:true};
-      videos.push(value);
+      videos.push(id);
     }
     return {videos,invalid:false};
   }
