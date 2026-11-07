@@ -435,6 +435,18 @@ body{
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 
+
+<style id="deluxe-glass-strength">
+:root{--glass-alpha:.604;--glass-blur:15.4px}
+.topbar{background:rgba(12,16,29,calc(var(--glass-alpha) * .92))!important;backdrop-filter:blur(var(--glass-blur)) saturate(165%)!important;-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(165%)!important}
+:where(.panel,.card,.game-card,.social-panel,.modal-card,.modal,.account-card,.collection-card,.game-detail-description-card,.game-player-shell,.inbox-message,.profile-card,.settings-card,.discover-hero,.download-option,.seasonal-exclusive-game,.game-rating-panel,.game-promo-card,.chat-panel,.community-panel,.exclusive-theme-card){background:linear-gradient(145deg,rgba(255,255,255,calc((1 - var(--glass-alpha)) * .14)),rgba(255,255,255,calc((1 - var(--glass-alpha)) * .025))),rgba(24,30,49,var(--glass-alpha))!important;backdrop-filter:blur(var(--glass-blur)) saturate(155%);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(155%)}
+.site-pilot-embed-shell{height:min(78vh,900px);min-height:560px;overflow:hidden;border:1px solid rgba(225,231,255,.17);border-radius:22px;background:rgba(16,21,36,.7);box-shadow:0 18px 55px rgba(0,0,0,.25)}
+.site-pilot-embed-shell iframe{display:block;width:100%;height:100%;border:0;background:#090d18}
+.site-pilot-standalone{margin:12px 2px;color:var(--muted)}
+.site-pilot-standalone a{color:var(--accent2)}
+@media(max-width:760px){.site-pilot-embed-shell{height:calc(100dvh - 220px);min-height:480px;border-radius:15px}}
+</style>
+
 </head>
 <body>
   <header class="topbar deluxe-topbar">
@@ -454,6 +466,7 @@ body{
       <a href="#" class="sidebar-link" data-page="games" data-label="Games" title="Games"><span class="sidebar-icon">🎮</span><span class="sidebar-label">Games</span></a>
       <a href="#" class="sidebar-link" data-page="inbox" id="inboxNavLink" data-label="Inbox" title="Inbox"><span class="sidebar-icon">✉</span><span class="sidebar-label">Inbox</span><span id="sidebarUnreadBadge" class="unread-badge hidden">0</span></a>
       <a href="#" class="sidebar-link" data-page="badges" data-label="Badges" title="Badges"><span class="sidebar-icon">🏅</span><span class="sidebar-label">Badges</span></a>
+      <a href="#" class="sidebar-link" data-page="sitePilot" data-label="Site Pilot" title="Site Pilot"><span class="sidebar-icon">✦</span><span class="sidebar-label">Site Pilot</span></a>
       <a href="https://zacharyceiley-jpg.github.io/secret-Unblocked-Listen/" target="_blank" rel="noopener" onclick="recordListenDailyTask()" class="sidebar-link" data-label="Listen" title="Listen"><span class="sidebar-icon">♫</span><span class="sidebar-label">Listen</span></a>
       <button type="button" class="sidebar-link" id="sidebarGameCreator" onclick="if(!currentUser){openAuth('login')}else{resetGameEditor();openModal('gameUploader')}" title="Game Creator"><span class="sidebar-icon">✚</span><span class="sidebar-label">Game Creator</span></button>
       <a href="#" class="sidebar-link" data-page="community" data-label="Community" title="Community"><span class="sidebar-icon">◎</span><span class="sidebar-label">Community</span></a>
@@ -545,6 +558,16 @@ body{
           <div class="theme-actions"><button id="lightModeToggle" class="primary" type="button" aria-pressed="false">Enable Light Mode</button></div>
         </div>
       </article>
+      <div class="section-heading"><div><p class="eyebrow">APPEARANCE</p><h2>Liquid Glass</h2></div></div>
+      <article class="exclusive-theme-card glass-preference-card" style="margin-bottom:28px">
+        <div class="exclusive-theme-body">
+          <div class="theme-status" id="deluxeGlassStatus">Glass transparency: 55%</div>
+          <h3>Glass transparency</h3>
+          <p>Slide left for solid panels with no blur, or right for a more translucent Liquid Glass look. Saved on this device.</p>
+          <label for="deluxeGlassLevel" class="small-note">Solid <span style="float:right">Translucent</span></label>
+          <input id="deluxeGlassLevel" type="range" min="0" max="100" step="1" value="55" style="display:block;width:100%;margin:12px 0;accent-color:var(--accent)">
+        </div>
+      </article>
       <div class="section-heading"><div><p class="eyebrow">EXCLUSIVE THEMES</p><h2>Your collection</h2></div></div>
       <p class="settings-note">Exclusive themes are saved to your Deluxe account, so unlocks and your selected theme follow you when you sign in on another device. SFOTH is earned by playing SFOTH IV on Deluxe for at least 60 seconds.</p>
       <div class="settings-grid">
@@ -610,6 +633,12 @@ body{
       </div></article>
       <div class="section-heading" style="margin-top:36px"><div><p class="eyebrow">ACCOUNT</p><h2>Sign-in status</h2></div></div>
       <article class="exclusive-theme-card"><div class="exclusive-theme-body"><div id="settingsAccountStatus" class="theme-status">Checking account…</div><h3>Stay signed in</h3><p>Your Deluxe session is saved in this browser, so you should stay signed in when you return. Use this button whenever you want to sign out of this device.</p><div class="theme-actions"><button id="settingsSignOut" class="danger-button" type="button">Sign Out</button></div><div id="settingsSignOutMessage" class="theme-message" role="status" aria-live="polite"></div></div></article>
+    </section>
+
+    <section id="sitePilotPage" class="page site-pilot-embed-page">
+      <div class="page-title"><p class="eyebrow">DELUXE AI</p><h1>Site Pilot</h1><p>Site Pilot, built right into Secret Unblocked Deluxe. Sign in with your existing Deluxe account.</p></div>
+      <div class="site-pilot-embed-shell"><iframe id="sitePilotEmbed" src="https://zacharyceiley-jpg.github.io/site-pilot-ai/" title="Site Pilot AI" loading="lazy" allow="clipboard-write"></iframe></div>
+      <p class="small-note site-pilot-standalone">Having trouble with the embedded view? <a href="https://zacharyceiley-jpg.github.io/site-pilot-ai/" target="_blank" rel="noopener noreferrer">Open Site Pilot in a new tab</a>.</p>
     </section>
 
     <section id="gamesPage" class="page active">
@@ -1222,6 +1251,24 @@ function loadFromDeluxe(onLoaded) {
   $("saveGameTheme")?.addEventListener("click", saveGameThemeDesign);
   $("clearGameTheme")?.addEventListener("click", clearGameThemeEditor);
 
+
+  // Liquid Glass preference (0 = solid, 100 = translucent).
+  const DELUXE_GLASS_KEY = "deluxeGlassLevel";
+  function applyDeluxeGlass(value, save = true) {
+    const level = Math.max(0, Math.min(100, Number(value) || 0));
+    const alpha = 1 - (level / 100) * 0.72;
+    document.documentElement.style.setProperty("--glass-alpha", alpha.toFixed(3));
+    document.documentElement.style.setProperty("--glass-blur", (level * 0.28).toFixed(1) + "px");
+    const slider = $("deluxeGlassLevel");
+    const status = $("deluxeGlassStatus");
+    if (slider) slider.value = String(level);
+    if (status) status.textContent = "Glass transparency: " + level + "%";
+    if (save) { try { localStorage.setItem(DELUXE_GLASS_KEY, String(level)); } catch (error) { console.warn("Could not save glass preference:", error); } }
+  }
+  let savedDeluxeGlass = 55;
+  try { savedDeluxeGlass = Number(localStorage.getItem(DELUXE_GLASS_KEY) ?? 55); } catch {}
+  applyDeluxeGlass(savedDeluxeGlass, false);
+  $("deluxeGlassLevel")?.addEventListener("input", event => applyDeluxeGlass(event.target.value));
   const LIGHT_MODE_KEY = "deluxeLightMode";
   function applyLightMode(enabled){
     document.body.classList.toggle("light-mode", !!enabled);
