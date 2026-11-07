@@ -1339,7 +1339,7 @@ function loadFromDeluxe(onLoaded) {
     }
     if (allRoot) allRoot.innerHTML = '<div class="loading">Loading badges…</div>';
     const [badgeResult, earnedResult, gameResult] = await Promise.all([
-      sb.from("deluxe_badges").select("id,name,image_url,description,requirement_seconds,condition_type,condition_value,game_id,creator_id").order("created_at", {ascending:false}),
+      sb.from("deluxe_badges").select("id,name,image_url,description,requirement_seconds,condition_type,condition_value,game_id,creator_id,game:games(title)").order("created_at", {ascending:false}),
       sb.from("user_badges").select("badge_id,earned_at").eq("user_id", currentUser.id),
       sb.from("games").select("id,title").eq("creator_id", currentUser.id).order("created_at", {ascending:false})
     ]);
@@ -1355,7 +1355,7 @@ function loadFromDeluxe(onLoaded) {
     (allPublishedGames || []).forEach(game => gameNames.set(game.id, game.title));
     const earnedRows = deluxeBadgeRows.filter(badge => deluxeEarnedBadgeIds.has(badge.id));
     const renderCard = (badge, earned) => {
-      const gameName = gameNames.get(badge.game_id) || "Deluxe game";
+      const gameName = badge.game?.title || gameNames.get(badge.game_id) || "Deluxe game";
       const requirement = badge.condition_type === "time_played"
         ? "Play for " + Math.max(0, Number(badge.requirement_seconds || 0)) + " seconds"
         : "Show this text in-game: “" + (badge.condition_value || "Creator requirement") + "”";
@@ -1373,7 +1373,7 @@ function loadFromDeluxe(onLoaded) {
     const redeemSelect = $("badgeRedeemSelect");
     if (redeemSelect) {
       redeemSelect.innerHTML = '<option value="">Choose a badge…</option>' + deluxeBadgeRows.filter(badge => !deluxeEarnedBadgeIds.has(badge.id) && badge.condition_type === "text_on_screen").map(badge =>
-        '<option value="' + escapeHtml(badge.id) + '">' + escapeHtml(badge.name) + ' · ' + escapeHtml(gameNames.get(badge.game_id) || "Game") + '</option>'
+        '<option value="' + escapeHtml(badge.id) + '">' + escapeHtml(badge.name) + ' · ' + escapeHtml(badge.game?.title || gameNames.get(badge.game_id) || "Game") + '</option>'
       ).join("");
     }
     const creatorSection = $("badgeCreatorSection");
@@ -1487,7 +1487,7 @@ function loadFromDeluxe(onLoaded) {
   };
 
   async function copyGameScreenshot() {
-    if (!currentGame || currentGame.seasonal) {
+    if (!currentGame) {
       window.showDeluxeToast("Screenshot unavailable", "This game window cannot be captured here.");
       return;
     }
