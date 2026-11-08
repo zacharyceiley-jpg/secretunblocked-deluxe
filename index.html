@@ -3058,7 +3058,7 @@ flushDeluxePlayTracking();
     if(gameIsExternal) {
       // External games need normal browser storage and common embedded-game features.
       // These permissions do not override a site's own X-Frame-Options/CSP restrictions.
-      frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-downloads allow-modals allow-top-navigation-by-user-activation");
+      frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-downloads allow-modals");
     } else {
       // Keep same-origin uploads isolated from the Deluxe page.
       frame.setAttribute("sandbox","allow-scripts allow-forms allow-popups allow-pointer-lock allow-downloads allow-modals");
