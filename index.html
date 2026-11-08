@@ -437,6 +437,29 @@ body{
 @media(max-height:760px) and (min-width:761px){.site-pilot-embed-shell{height:calc(100dvh - 170px);min-height:540px}}
 </style>
 
+<style id="admin-matched-liquid-glass-surfaces">
+:where(.game-uploader,.admin-tools,.feature,.user-card,.inbox-message,.settings-card,.exclusive-theme-card,.game-detail-description-card,.game-rating-panel,.game-promo-card,.game-chat-panel,.seasonal-exclusive-game,.admin-user-picker,#adminMessages){
+ background:linear-gradient(145deg,rgba(255,255,255,calc((1 - var(--glass-alpha,.604)) * .20)),rgba(255,255,255,calc((1 - var(--glass-alpha,.604)) * .035))),rgba(24,30,49,var(--glass-alpha,.604))!important;
+ border:1px solid rgba(225,231,255,.16)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.12),0 16px 42px rgba(0,0,0,.19)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur,15.4px)) saturate(160%);
+ backdrop-filter:blur(var(--glass-blur,15.4px)) saturate(160%);
+}
+:where(.game-uploader,.admin-tools,.feature,.settings-card,.exclusive-theme-card,.game-detail-description-card,.game-rating-panel,.game-promo-card,.seasonal-exclusive-game){
+ border-radius:18px!important;position:relative;overflow:hidden;
+}
+:where(.game-uploader,.admin-tools,.feature,.settings-card,.exclusive-theme-card,.game-detail-description-card,.game-rating-panel,.game-promo-card,.seasonal-exclusive-game)::before{
+ content:"";position:absolute;top:0;left:5%;right:5%;height:1px;pointer-events:none;
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.30),transparent);
+}
+:where(.admin-search,.admin-compose textarea,.game-uploader input,.game-uploader select,.game-uploader textarea){
+ background:rgba(7,11,23,.48)!important;border:1px solid rgba(225,231,255,.16)!important;border-radius:12px!important;
+}
+:where(.game-uploader,.admin-tools,.feature,.settings-card,.exclusive-theme-card,.game-detail-description-card,.game-rating-panel,.game-promo-card,.seasonal-exclusive-game):hover{
+ border-color:rgba(198,188,255,.30)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.15),0 20px 48px rgba(0,0,0,.24)!important;
+}
+</style>
 </head>
 <body>
   <header class="topbar deluxe-topbar">
