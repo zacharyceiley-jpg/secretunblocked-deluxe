@@ -4352,6 +4352,12 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
   }, true);
 
   window.showPage = function(name) {
+    // Keep accidental navigation events from tearing down an active game session.
+    // Users can leave the game first, then open Community normally.
+    if (name === "community" && typeof currentGame !== "undefined" && currentGame) {
+      console.warn("[Deluxe] Ignored Community navigation while a game is active.");
+      return;
+    }
     if (name !== "community" || verified) return originalShowPage(name);
     if (typeof currentUser === "undefined" || !currentUser) return originalShowPage(name);
     openModal();
