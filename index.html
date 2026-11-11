@@ -478,6 +478,7 @@ body{
   <aside class="deluxe-sidebar" id="deluxeSidebar" aria-label="Main navigation">
     <div class="sidebar-nav">
       <a href="#" class="sidebar-link" data-page="games" data-label="Games" title="Games"><span class="sidebar-icon">🎮</span><span class="sidebar-label">Games</span></a>
+      <a href="#" class="sidebar-link" data-page="education" data-label="Deluxe Education" title="Deluxe Education"><span class="sidebar-icon">📚</span><span class="sidebar-label">Deluxe Education</span></a>
       <a href="#" class="sidebar-link" data-page="inbox" id="inboxNavLink" data-label="Inbox" title="Inbox"><span class="sidebar-icon">✉</span><span class="sidebar-label">Inbox</span><span id="sidebarUnreadBadge" class="unread-badge hidden">0</span></a>
       <a href="#" class="sidebar-link" data-page="badges" data-label="Badges" title="Badges"><span class="sidebar-icon">🏅</span><span class="sidebar-label">Badges</span></a>
       <a href="#" class="sidebar-link" data-page="sitePilot" data-label="Site Pilot" title="Site Pilot"><span class="sidebar-icon">✦</span><span class="sidebar-label">Site Pilot</span></a>
@@ -714,6 +715,8 @@ body{
             <option value="16+">16+</option>
             <option value="18+">18+</option>
           </select>
+          <label class="small-note" style="display:flex;align-items:center;gap:8px;margin:12px 0"><input id="gameEducationEnabled" type="checkbox" style="width:auto;margin:0;padding:0"> Mark as an educational game</label>
+          <p class="game-genre-editor-note">Educational games still appear in the regular Games library and will also appear on Deluxe Education.</p>
           <label class="small-note" for="gameUrl">Game URL</label>
           <input id="gameUrl" type="url" required placeholder="https://example.com/game">
           <details style="border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0 14px;background:var(--panel)">
@@ -760,6 +763,12 @@ function loadFromDeluxe(onLoaded) {
         </form>
       </div>
     </div>
+
+    <section id="educationPage" class="page">
+      <div class="page-title"><p class="eyebrow">LEARN THROUGH PLAY</p><h1>Deluxe Education</h1><p>Discover games marked by their creators as educational. These games are also available in the regular Games library.</p></div>
+      <div class="game-toolbar"><input id="educationGameSearch" class="game-search" type="search" placeholder="Search educational games…" aria-label="Search educational games"></div>
+      <div id="educationGameGrid"><div class="loading">Loading educational games…</div></div>
+    </section>
 
     <section id="gameDetailPage" class="page">
       <div id="gameDetailRoot"></div>
@@ -2554,11 +2563,12 @@ function loadFromDeluxe(onLoaded) {
     return [...new Set(raw
       .map(value => String(value ?? "").trim())
       .filter(Boolean)
-      .map(value => value.replace(/^["']|["']$/g, "")))]
+      .map(value => value.replace(/^["']|["']$/g, ""))
+      .filter(value => value !== "__deluxe_education__"))]
       .slice(0, 10);
   }
   function parseGameGenres(value) {
-    return [...new Set(String(value || "").split(",").map(tag => tag.trim()).filter(Boolean))].slice(0, 10);
+    return [...new Set(String(value || "").split(",").map(tag => tag.trim()).filter(tag => Boolean(tag) && tag !== "__deluxe_education__"))].slice(0, 10);
   }
 
   function openGameDetails(id) {
@@ -2830,6 +2840,7 @@ function loadFromDeluxe(onLoaded) {
     const thumbnail_url=thumbnail_images[0]||null;
     const icon_url=$("gameIcon").value.trim();
     const tags=parseGameGenres($("gameGenres").value);
+    if ($("gameEducationEnabled").checked) tags.push("__deluxe_education__");
     const game_url=$("gameUrl").value.trim();
     const discord_url=$("gameDiscordUrl").value.trim();
     const fandom_url=$("gameFandomUrl").value.trim();
@@ -2876,6 +2887,7 @@ function loadFromDeluxe(onLoaded) {
     $("gameDescription").value = game.description || "";
     $("gameGenres").value = getGameGenres(game).join(", ");
     $("gameAgeRecommendation").value = game.age_recommendation || game.age_rating || "";
+    $("gameEducationEnabled").checked = Array.isArray(game.tags) && game.tags.includes("__deluxe_education__");
     const existingThumbnails=Array.isArray(game.thumbnail_images)&&game.thumbnail_images.length?game.thumbnail_images:(game.thumbnail_url?[game.thumbnail_url]:[]);
     for(let i=1;i<=10;i++) $("gameThumbnail"+i).value=existingThumbnails[i-1]||"";
     $("gameIcon").value = game.icon_url || "";
@@ -2900,6 +2912,7 @@ function loadFromDeluxe(onLoaded) {
     $("gameChatEnabled").checked = true;
     $("gameGenres").value = "";
     $("gameAgeRecommendation").value = "";
+    $("gameEducationEnabled").checked = false;
     $("gameDiscordUrl").value = "";
     $("gameFandomUrl").value = "";
     for(let i=1;i<=2;i++) $("gamePromoVideo"+i).value = "";
@@ -2961,6 +2974,7 @@ function loadFromDeluxe(onLoaded) {
     const thumbnail_url=thumbnail_images[0]||null;
     const icon_url = $("gameIcon").value.trim();
     const tags = parseGameGenres($("gameGenres").value);
+    if ($("gameEducationEnabled").checked) tags.push("__deluxe_education__");
     const game_url = $("gameUrl").value.trim();
     const discord_url = $("gameDiscordUrl").value.trim();
     const fandom_url = $("gameFandomUrl").value.trim();
@@ -4149,7 +4163,19 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
     const purchased=owned.length?'<section class="game-discovery-section"><div class="section-heading"><h2>Purchased Games</h2></div><div class="game-discovery-grid">'+owned.map(game=>{const key=String(game.key||"").replace(/[^a-zA-Z0-9_-]/g,"");return '<article class="game-card" onclick="openSeasonalGame(\''+key+'\')"><div class="game-thumb">'+(game.icon?'<img src="'+escapeHtml(game.icon)+'" alt="">':"🎮")+'</div><div class="game-card-body"><div class="game-title">'+escapeHtml(game.title||"Game")+'</div></div></article>';}).join("")+'</div></section>':"";
     const html=row("Continue","PICK UP WHERE YOU LEFT OFF",recent,"continueGames")+row("Picks for you","RECOMMENDED",picks.length?picks:fallback.slice(0,8),"picksForYouGames")+row("Deluxe Classics","SECRET UNBLOCKED CLASSICS",classics,"deluxeClassics")+row("New picks","JUST ADDED",newest.slice(0,8),"newPicks")+row("Top 8 newest games","LATEST RELEASES",newest.slice(0,8),"topNewest")+row("Trending","MOST PLAYED",trending.slice(0,8),"trendingGames")+row("All trending","TRENDING LIBRARY",trending,"allTrending")+purchased+row("All games","FULL LIBRARY",games,"allGames");
     $id("gameGrid").innerHTML=html||'<div class="empty-state"><span>🎮</span><h2>No games found</h2><p>Try another search.</p></div>';
-  };
+   };
+   window.renderEducationGames=function(filter=""){
+    const q=String(filter||"").trim().toLocaleLowerCase();
+    const educational=allPublishedGames.filter(g=>{
+      let tags=g.tags||[];
+      if(typeof tags==="string"){try{tags=JSON.parse(tags)}catch(_){tags=tags.split(",")}}
+      const marked=Array.isArray(tags)&&tags.some(tag=>String(tag).trim()==="__deluxe_education__");
+      return marked&&(!q||[g.title,g.description,g.profiles?.username,...getGameGenres(g)].some(value=>String(value||"").toLocaleLowerCase().includes(q)));
+    });
+    const root=$id("educationGameGrid");
+    if(root)root.innerHTML=educational.length?'<div class="game-discovery-grid">'+educational.map(g=>renderLibraryCard(g)).join("")+'</div>':'<div class="empty-state"><span>📚</span><h2>No educational games found</h2><p>Games marked as educational in their edit settings will appear here.</p></div>';
+   };
+   $id("educationGameSearch")?.addEventListener("input",event=>window.renderEducationGames(event.target.value));
   window.openGameDetails=function(id){
     const g=allPublishedGames.find(x=>x.id===id);if(!g)return;
     const title=escapeHtml(g.title||"Untitled Game"),description=escapeHtml(g.description||"No description has been added yet.");
@@ -4259,7 +4285,7 @@ window.loadCommunity=async function(){if(oldLoadCommunity)await oldLoadCommunity
  }
  window.refreshDeluxeFriendsBar=loadFriends;
  const prevAccount=window.updateAccountUI;window.updateAccountUI=function(){prevAccount?.();loadFriends();loadRatings();sendPresenceHeartbeat();};
- const prevShow=window.showPage;window.showPage=function(name){prevShow?.(name);if(name==="games")loadFriends();};
+ const prevShow=window.showPage;window.showPage=function(name){prevShow?.(name);if(name==="games")loadFriends();if(name==="education")window.renderEducationGames?.($("#educationGameSearch")?.value||"");};
  window.addEventListener("load",()=>{loadFriends();loadRatings();sendPresenceHeartbeat();});
  setInterval(sendPresenceHeartbeat,25000);
  setInterval(()=>{if($("gamesPage")?.classList.contains("active"))loadFriends();},20000);
