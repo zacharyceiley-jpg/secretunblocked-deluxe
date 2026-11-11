@@ -2264,9 +2264,9 @@ function loadFromDeluxe(onLoaded) {
     if (error) return setAuthMessage(error.message, true);
 
     if (data.session) {
-      await refreshSession();
-      setAuthMessage("Account created.");
-      setTimeout(() => closeModal("authModal"), 700);
+      const {error: signOutError} = await sb.auth.signOut({scope:"local"});
+      if (signOutError) console.warn("Post-registration sign-out:", signOutError);
+      setAuthMessage("Registered. Proceed to sign in.");
     } else {
       setAuthMessage("Account created. Check your email to confirm it, then log in.");
     }
