@@ -461,6 +461,28 @@ body{
  box-shadow:inset 0 1px rgba(255,255,255,.15),0 20px 48px rgba(0,0,0,.24)!important;
 }
 </style>
+
+<style id="deluxe-game-window-controls-update">
+.game-player-layout{display:grid;grid-template-columns:58px minmax(0,1fr);gap:13px;align-items:stretch;width:100%}
+.game-player-controls{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:13px;padding:12px 0}
+.game-player-control{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);border-radius:13px;color:var(--text);font-size:21px;line-height:1;cursor:pointer;position:relative;transition:transform .18s cubic-bezier(.2,.8,.2,1),background .18s,border-color .18s,color .18s,box-shadow .18s;transform-origin:center}
+.game-player-control:hover,.game-player-control:focus-visible{transform:scale(1.13) rotate(-7deg);background:var(--panel2);border-color:#38d27e;color:#68e99e;box-shadow:0 8px 22px #0005;z-index:2;outline:none}
+.game-player-control:active{transform:scale(1.06) rotate(-3deg)}
+.game-player-control[aria-label="Chat"]{font-size:20px}
+.game-player-control[aria-label="Screenshot"]{font-size:20px}
+.game-player-layout .game-player-shell{min-width:0;width:100%;min-height:70vh}
+.game-player-layout .game-player-frame{width:100%;height:70vh}
+.game-player-layout .game-chat-overlay{z-index:7}
+.game-player-layout .game-player-controls .game-key-hint{top:-5px;right:-5px;left:auto}
+@media(max-width:760px){
+ .game-player-layout{grid-template-columns:48px minmax(0,1fr);gap:8px}
+ .game-player-controls{gap:10px}
+ .game-player-control{width:42px;height:42px;flex-basis:42px}
+ .game-player-layout .game-player-shell{min-height:55vh}
+ .game-player-layout .game-player-frame{height:55vh}
+}
+</style>
+
 </head>
 <body>
   <header class="topbar deluxe-topbar">
@@ -4171,9 +4193,28 @@ window.openGameDetails=function(id){
   };
   window.renderGamePage=function(){
     const g=currentGame;if(!g)return;
-    $id("gamePlayerRoot").innerHTML='<div class="game-player-shell"><iframe id="activeGameFrame" class="game-player-frame" src="about:blank" title="'+escapeHtml(g.title)+'" allow="fullscreen; gamepad; autoplay" allowfullscreen sandbox="allow-scripts allow-forms allow-popups allow-pointer-lock allow-downloads" loading="eager"></iframe>'+(g.chat_enabled?'<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(\'gameChatOverlay\').classList.add(\'hidden\')" aria-label="Close chat">×</button></div><div id="gameChatBox" class="game-chat-box"><div class="loading">Loading chat…</div></div><div class="game-chat-input"><input id="gameChatInput" maxlength="1000" placeholder="Message this game…"><button class="primary" id="gameChatSend">➤</button></div></aside>':'')+'</div><div class="game-player-controls"><button class="game-player-control" type="button" onclick="toggleGameFullscreen()" aria-label="Fullscreen" title="Fullscreen">⛶</button><button class="game-player-control" type="button" onclick="copyGameScreenshot()" aria-label="Take screenshot (8)" title="Take screenshot (8)">📷<span class="game-key-hint" aria-hidden="true">8</span></button><button class="game-player-control" type="button" onclick="leaveGame()" aria-label="Leave game" title="Leave game">↩</button>'+(g.chat_enabled?'<button class="game-player-control" type="button" onclick="document.getElementById(\'gameChatOverlay\').classList.toggle(\'hidden\')" aria-label="Game chat" title="Game chat">💬</button>':'')+'</div>';
+    const chatMarkup = g.chat_enabled
+      ? '<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(\\'gameChatOverlay\\').classList.add(\\'hidden\\')" aria-label="Close chat">×</button></div><div id="gameChatBox" class="game-chat-box"><div class="loading">Loading chat…</div></div><div class="game-chat-input"><input id="gameChatInput" maxlength="1000" placeholder="Message this game…"><button class="primary" id="gameChatSend" type="button">➤</button></div></aside>'
+      : '<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(\\'gameChatOverlay\\').classList.add(\\'hidden\\')" aria-label="Close chat">×</button></div><div class="game-chat-disabled">Chat is disabled for this game.</div></aside>';
+    $id("gamePlayerRoot").innerHTML =
+      '<div class="game-player-layout">' +
+        '<div class="game-player-controls" aria-label="Game controls">' +
+          '<button class="game-player-control" type="button" onclick="toggleGameFullscreen()" aria-label="Fullscreen" title="Fullscreen">⛶</button>' +
+          '<button class="game-player-control" type="button" onclick="document.getElementById(\\'gameChatOverlay\\').classList.toggle(\\'hidden\\')" aria-label="Chat" title="Chat">💬</button>' +
+          '<button class="game-player-control" type="button" onclick="leaveGame()" aria-label="Exit game" title="Exit game">↩</button>' +
+          '<button class="game-player-control" type="button" onclick="copyGameScreenshot()" aria-label="Screenshot" title="Screenshot">📷</button>' +
+        '</div>' +
+        '<div class="game-player-shell">' +
+          '<iframe id="activeGameFrame" class="game-player-frame" src="about:blank" title="' + escapeHtml(g.title) + '" allow="fullscreen; gamepad; autoplay" allowfullscreen sandbox="allow-scripts allow-forms allow-popups allow-pointer-lock allow-downloads" loading="eager"></iframe>' +
+          chatMarkup +
+        '</div>' +
+      '</div>';
     loadPlayableGameFrame(g.game_url);
-    if(g.chat_enabled){$id("gameChatSend").onclick=sendGameMessage;$id("gameChatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendGameMessage()});gameChatRefreshTimer=setInterval(()=>loadGameChat(true),15000);}
+    if(g.chat_enabled){
+      $id("gameChatSend").onclick=sendGameMessage;
+      $id("gameChatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendGameMessage()});
+      gameChatRefreshTimer=setInterval(()=>loadGameChat(true),15000);
+    }
   };
   const oldInboxLoad=window.loadInbox;
   window.loadInbox=async function(){
