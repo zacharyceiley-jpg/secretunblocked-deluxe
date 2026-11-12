@@ -4194,13 +4194,13 @@ window.openGameDetails=function(id){
   window.renderGamePage=function(){
     const g=currentGame;if(!g)return;
     const chatMarkup = g.chat_enabled
-      ? '<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(\\'gameChatOverlay\\').classList.add(\\'hidden\\')" aria-label="Close chat">×</button></div><div id="gameChatBox" class="game-chat-box"><div class="loading">Loading chat…</div></div><div class="game-chat-input"><input id="gameChatInput" maxlength="1000" placeholder="Message this game…"><button class="primary" id="gameChatSend" type="button">➤</button></div></aside>'
-      : '<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(\\'gameChatOverlay\\').classList.add(\\'hidden\\')" aria-label="Close chat">×</button></div><div class="game-chat-disabled">Chat is disabled for this game.</div></aside>';
+      ? '<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(&quot;gameChatOverlay&quot;).classList.add(&quot;hidden&quot;)" aria-label="Close chat">×</button></div><div id="gameChatBox" class="game-chat-box"><div class="loading">Loading chat…</div></div><div class="game-chat-input"><input id="gameChatInput" maxlength="1000" placeholder="Message this game…"><button class="primary" id="gameChatSend" type="button">➤</button></div></aside>'
+      : '<aside id="gameChatOverlay" class="game-chat-overlay hidden"><div class="game-chat-head"><h3>💬 Chat</h3><button class="game-player-control" type="button" onclick="document.getElementById(&quot;gameChatOverlay&quot;).classList.add(&quot;hidden&quot;)" aria-label="Close chat">×</button></div><div class="game-chat-disabled">Chat is disabled for this game.</div></aside>';
     $id("gamePlayerRoot").innerHTML =
       '<div class="game-player-layout">' +
         '<div class="game-player-controls" aria-label="Game controls">' +
           '<button class="game-player-control" type="button" onclick="toggleGameFullscreen()" aria-label="Fullscreen" title="Fullscreen">⛶</button>' +
-          '<button class="game-player-control" type="button" onclick="document.getElementById(\\'gameChatOverlay\\').classList.toggle(\\'hidden\\')" aria-label="Chat" title="Chat">💬</button>' +
+          '<button class="game-player-control" type="button" onclick="document.getElementById(&quot;gameChatOverlay&quot;).classList.toggle(&quot;hidden&quot;)" aria-label="Chat" title="Chat">💬</button>' +
           '<button class="game-player-control" type="button" onclick="leaveGame()" aria-label="Exit game" title="Exit game">↩</button>' +
           '<button class="game-player-control" type="button" onclick="copyGameScreenshot()" aria-label="Screenshot" title="Screenshot">📷</button>' +
         '</div>' +
