@@ -4461,6 +4461,9 @@ window.openGameDetails=function(id){
       event.preventDefault();
       event.stopImmediatePropagation();
       event.stopPropagation();
+      if (type === "click" && typeof window.showDeluxeToast === "function") {
+        window.showDeluxeToast("Game Lock Mode", "Press the leave button to use this.");
+      }
     }, true);
   });
 
@@ -4480,18 +4483,10 @@ window.openGameDetails=function(id){
   const lockedRoots = () => Array.from(document.querySelectorAll(
     "header, .topbar, nav, .nav, .sidebar, #sidebar, .account-area, .page:not(#gamePage)"
   ));
-  let locked = [];
   const syncLock = () => {
-    const active = gameIsOpen();
-    if (active && !locked.length) {
-      locked = lockedRoots().filter(el => !el.hasAttribute("inert"));
-      locked.forEach(el => el.setAttribute("inert", ""));
-      document.documentElement.classList.add("deluxe-game-lock-active");
-    } else if (!active && locked.length) {
-      locked.forEach(el => el.removeAttribute("inert"));
-      locked = [];
-      document.documentElement.classList.remove("deluxe-game-lock-active");
-    }
+    // Do not apply inert: it suppresses pointer events before the document
+    // capture handler can show the Game Lock Mode explanation toast.
+    document.documentElement.classList.toggle("deluxe-game-lock-active", gameIsOpen());
   };
   const observer = new MutationObserver(syncLock);
   observer.observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:["class"]});
