@@ -4426,5 +4426,89 @@ window.openGameDetails=function(id){
   });
 })();
 </script>
+
+<script id="deluxeGameLockMode">
+(() => {
+  const gameIsOpen = () => {
+    const page = document.getElementById("gamePage");
+    const frame = document.getElementById("activeGameFrame");
+    return !!(page && page.classList.contains("active") && frame && frame.isConnected);
+  };
+  const isAllowedSurface = target => {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest("#gamePage, .modal, [role='dialog'], .toast, .toast-container, #toastContainer, #deluxeToast");
+  };
+
+  // Prevent accidental navigation while a game is active, including calls
+  // made by older UI handlers rather than a direct button click.
+  const previousShowPage = window.showPage;
+  if (typeof previousShowPage === "function") {
+    window.showPage = function(pageName, ...args) {
+      if (gameIsOpen() && pageName !== "game") {
+        console.info("[Deluxe] Game Lock Mode blocked navigation:", pageName);
+        return;
+      }
+      return previousShowPage.call(this, pageName, ...args);
+    };
+  }
+
+  // Lock all clickable UI outside the game window. Game controls, chat,
+  // dialogs and notification pop-ups remain available.
+  const blockedEvents = ["click", "auxclick", "submit"];
+  blockedEvents.forEach(type => {
+    document.addEventListener(type, event => {
+      if (!gameIsOpen() || isAllowedSurface(event.target)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      event.stopPropagation();
+    }, true);
+  });
+
+  // Disable keyboard activation of background controls as well.
+  document.addEventListener("keydown", event => {
+    if (!gameIsOpen() || isAllowedSurface(event.target)) return;
+    if (event.key === "Enter" || event.key === " ") {
+      const target = event.target;
+      if (target instanceof Element && target.closest("button, a, input, select, textarea, [role='button'], [tabindex]")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }
+  }, true);
+
+  // Keep background controls out of keyboard focus while gameplay is active.
+  const lockedRoots = () => Array.from(document.querySelectorAll(
+    "header, .topbar, nav, .nav, .sidebar, #sidebar, .account-area, .page:not(#gamePage)"
+  ));
+  let locked = [];
+  const syncLock = () => {
+    const active = gameIsOpen();
+    if (active && !locked.length) {
+      locked = lockedRoots().filter(el => !el.hasAttribute("inert"));
+      locked.forEach(el => el.setAttribute("inert", ""));
+      document.documentElement.classList.add("deluxe-game-lock-active");
+    } else if (!active && locked.length) {
+      locked.forEach(el => el.removeAttribute("inert"));
+      locked = [];
+      document.documentElement.classList.remove("deluxe-game-lock-active");
+    }
+  };
+  const observer = new MutationObserver(syncLock);
+  observer.observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:["class"]});
+  window.addEventListener("load", syncLock);
+  syncLock();
+
+  // Re-check after game exit/navigation and when the game page is rendered.
+  const oldLeave = window.leaveGame;
+  if (typeof oldLeave === "function") {
+    window.leaveGame = function(...args) {
+      const result = oldLeave.apply(this, args);
+      queueMicrotask(syncLock);
+      return result;
+    };
+  }
+  document.addEventListener("click", () => queueMicrotask(syncLock), true);
+})();
+</script>
 </body>
 </html>
