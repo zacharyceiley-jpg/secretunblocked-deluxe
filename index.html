@@ -3799,17 +3799,15 @@ flushDeluxePlayTracking();
   };
 
   if (sb) {
-    sb.auth.onAuthStateChange(() => {
-      // Match the pre-redesign Deluxe flow: after Supabase releases its auth
-      // lock, read the authoritative persisted session instead of trusting
-      // the event payload (which can be stale during startup restoration).
+    // Supabase emits INITIAL_SESSION with the session restored from browser
+    // storage. Use that event (and later auth events) as the single source of
+    // truth instead of racing it with a second getSession() startup request.
+    sb.auth.onAuthStateChange((_event, session) => {
+      // Defer work until Supabase releases its internal auth lock.
       setTimeout(() => {
-        refreshSession().catch(err => console.error("Session refresh error:", err));
+        refreshSession(session, true).catch(err => console.error("Session refresh error:", err));
       }, 0);
     });
-    // Keep an explicit startup read as a fallback if the initial auth event
-    // is delayed or missed. refreshSession's sequence guard prevents stale UI updates.
-    refreshSession().catch(err => console.error("Startup session restore failed:",err));
   }
   // Save active play sessions periodically, not only when the player exits.
   setInterval(() => {
@@ -4004,7 +4002,7 @@ el("communityPostForm")?.addEventListener("submit",async e=>{
  el("communityPostInput").value="";await messages();await refreshEmailSubscription();notifyEmailSubscribers("community",data.id);
 });
 async function popupCheck(){if(!currentUser)return;const since=lastPopupCheck;const [{data:notes},{data:msgs}]=await Promise.all([sb.from("deluxe_notifications").select("id,title,body,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(8),sb.from("messages").select("id,content,created_at,sender:profiles!messages_sender_id_fkey(username)").eq("recipient_id",currentUser.id).is("game_id",null).order("created_at",{ascending:false}).limit(8)]);const items=[...(notes||[]),...(msgs||[]).map(m=>({id:"message-"+m.id,title:"Message from "+(m.sender?.username||"Administrator"),body:m.content,created_at:m.created_at}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));if(since){const fresh=items.filter(n=>new Date(n.created_at).getTime()>since);if(fresh.length)toast(fresh[0].title,fresh[0].body)}lastPopupCheck=Date.now()}
-const originalRefresh=refreshSession;refreshSession=async function(){await originalRefresh();if(currentUser){await presence();lastPopupCheck=Date.now();if(popupTimer)clearInterval(popupTimer);popupTimer=setInterval(popupCheck,8000)}else{if(presenceTimer)clearInterval(presenceTimer);if(popupTimer)clearInterval(popupTimer)}};
+const originalRefresh=refreshSession;refreshSession=async function(...args){await originalRefresh(...args);if(currentUser){await presence();lastPopupCheck=Date.now();if(popupTimer)clearInterval(popupTimer);popupTimer=setInterval(popupCheck,8000)}else{if(presenceTimer)clearInterval(presenceTimer);if(popupTimer)clearInterval(popupTimer)}};
 const originalOpenGame=openGame;openGame=async function(id){await originalOpenGame(id);if(currentUser)presence()};
 window.addEventListener("pagehide",()=>{if(sb&&currentUser)sb.from("user_presence").update({online:false,current_game_id:null,updated_at:new Date().toISOString()}).eq("user_id",currentUser.id)});
 
