@@ -4620,8 +4620,16 @@ async function renderCommunityGameList(){
   const title=prompt("Enter the exact title of another game you own to link it to this community:");if(title===null||!title.trim())return;
   const {data:found,error}=await sb.from("games").select("id,title").eq("creator_id",currentUser.id).ilike("title",title.trim()).limit(2);
   if(error)return alert(error.message);if(!found?.length)return alert("No game you own matched that title.");if(found.length>1)return alert("More than one game matched. Please use a more specific title.");
+  const {data:oldMap}=await sb.from("game_community_games").select("community_id").eq("game_id",found[0].id).maybeSingle();
+  if(oldMap?.community_id&&oldMap.community_id!==b.dataset.linkGame){
+   const {data:oldMessages,msgError}=await sb.from("game_community_messages").select("channel_type,sender_id,content,created_at").eq("community_id",oldMap.community_id);
+   const {data:existing}=await sb.from("game_community_messages").select("channel_type,sender_id,content,created_at").eq("community_id",b.dataset.linkGame);
+   const keys=new Set((existing||[]).map(m=>[m.channel_type,m.sender_id,m.content,m.created_at].join("|")));
+   const carry=(oldMessages||[]).filter(m=>!keys.has([m.channel_type,m.sender_id,m.content,m.created_at].join("|"))).map(m=>({...m,community_id:b.dataset.linkGame}));
+   if(carry.length){const {error:copyError}=await sb.from("game_community_messages").insert(carry);if(copyError)return alert("Couldn't merge the old chat history: "+copyError.message);}
+  }
   const {error:saveError}=await sb.from("game_community_games").upsert({game_id:found[0].id,community_id:b.dataset.linkGame},{onConflict:"game_id"});
-  if(saveError)return alert(saveError.message);await renderCommunityGameList();toast("Game linked","Its community and chat are now shared.");
+  if(saveError)return alert(saveError.message);await renderCommunityGameList();toast("Game linked","Its old chat history was kept and its community is now shared.");
  }));
  gameList.querySelectorAll("[data-image-community]").forEach(b=>b.addEventListener("click",async()=>{
   const cm=cmById.get(b.dataset.imageCommunity);const url=prompt("Enter an HTTPS image URL for this shared community:",cm?.image_url||"");if(url===null)return;
