@@ -874,7 +874,7 @@ function loadFromDeluxe(onLoaded) {
     <section id="communityPage" class="page deluxe-community-page"><div class="community-shell">
 <aside class="community-glass community-left">
 <div class="community-brand-block"><p class="community-kicker">MAIN COMMUNITY</p><button class="community-select active" type="button" data-open-main-community><img class="community-site-icon" src="/favicon.ico" alt="Secret Unblocked Deluxe"><span><strong>Secret Unblocked Deluxe</strong><small>Main community</small></span></button></div>
-<div class="community-side-heading"><h2>Game Communities</h2><span id="communityGameCount" class="community-count">0</span><button type="button" id="createGameCommunity" class="community-create-button">＋ Create</button></div>
+<div class="community-side-heading"><h2>Game Communities</h2><span id="communityGameCount" class="community-count">0</span><button type="button" id="createGameCommunity" class="community-create-button" onclick="window.openCreateGameCommunityModal && window.openCreateGameCommunityModal()" aria-haspopup="dialog" aria-controls="createGameCommunityModal">＋ Create</button></div>
 <input id="communityGameSearch" class="social-input community-search" placeholder="⌕ Search communities…" aria-label="Search game communities"><div id="communityGameList" class="community-game-list"></div>
 <div class="community-game-tools"><select id="gameServerSelect" class="social-input" aria-label="Choose a game community"><option value="">Choose a game…</option></select><button id="refreshGameServers" class="community-icon-button" type="button" title="Refresh communities">↻</button></div>
 <form id="createGameServerForm" class="community-add-game"><select id="ownedGameSelect" class="social-input" required><option value="">Choose one of your games…</option></select><button class="secondary" type="submit">＋ Add my game</button></form>
@@ -4604,17 +4604,21 @@ $("communityGameSearch").addEventListener("input",e=>{const q=e.target.value.toL
 $("communityCreateGroup").addEventListener("click",()=>$("groupNameInput").focus());
 const gl=$("groupsList");if(gl){new MutationObserver(()=>gl.querySelectorAll(".social-row").forEach(row=>{const b=row.querySelector("button");if(!b||row.querySelector(".community-group-edit"))return;const id=(b.getAttribute("onclick")||"").match(/openGroupChat\('([^']+)'/)?.[1];if(!id)return;const edit=document.createElement("button");edit.type="button";edit.className="community-icon-button community-group-edit";edit.title="Edit group image";edit.textContent="✎";edit.addEventListener("click",async()=>{const cur=await sb.from("deluxe_groups").select("image_url").eq("id",id).maybeSingle();const url=prompt("Enter an HTTPS image URL for this group:",cur.data?.image_url||"");if(url===null)return;if(url.trim()&&!/^https:\/\//i.test(url.trim()))return alert("Please use an HTTPS image URL.");const {error}=await sb.from("deluxe_groups").update({image_url:url.trim()||null}).eq("id",id).eq("owner_id",currentUser.id);if(error)return alert(error.message);toast("Group updated","The group image has been saved.")});row.appendChild(edit)})).observe(gl,{childList:true,subtree:true})}
 const gameList=$("communityGameList");let sharedCommunityId=null;
-$("createGameCommunity")?.addEventListener("click",async()=>{
+window.openCreateGameCommunityModal=async function(){
+ const modal=$("createGameCommunityModal");
+ if(!modal){console.error("Create community modal is missing");return;}
  if(!currentUser){openAuth("login");return;}
  const select=$("createCommunityGame"),name=$("createCommunityName"),msg=$("createCommunityMessage");
+ if(!select||!name||!msg){console.error("Create community form is incomplete");return;}
  msg.textContent="Loading your games…";select.innerHTML='<option value="">Loading your games…</option>';name.value="";$("createCommunityImage").value="";
  openModal("createGameCommunityModal");
  const {data:owned,error}=await sb.from("games").select("id,title").eq("creator_id",currentUser.id).order("title");
- if(error){msg.textContent="Couldn't load your games: "+error.message;select.innerHTML='<option value="">Unable to load games</option>';return;}
+ if(error){msg.textContent="Couldn’t load your games: "+error.message;select.innerHTML='<option value="">Unable to load games</option>';return;}
  if(!owned?.length){msg.textContent="You need to own a game before creating a community. Create or publish a game first.";select.innerHTML='<option value="">No owned games found</option>';return;}
  select.innerHTML='<option value="">Choose a game…</option>'+owned.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.title)+'</option>').join("");
  msg.textContent="";select.onchange=()=>{const g=owned.find(x=>x.id===select.value);if(g&&!name.value)name.value=g.title;};
-});
+};
+$("createGameCommunity")?.addEventListener("click",()=>window.openCreateGameCommunityModal());
 document.querySelectorAll("[data-close-create-community]").forEach(b=>b.addEventListener("click",()=>closeModal("createGameCommunityModal")));
 $("createGameCommunityForm")?.addEventListener("submit",async e=>{
  e.preventDefault();if(!currentUser)return;
