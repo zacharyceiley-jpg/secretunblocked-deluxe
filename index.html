@@ -4633,7 +4633,7 @@ async function renderCommunityGameList(){
  const {data:maps,error:mapError}=await sb.from("game_community_games").select("game_id,community_id");
  if(mapError){gameList.innerHTML='<p class="social-muted">Unable to load communities.</p>';return}
  const ids=[...new Set((maps||[]).map(x=>x.game_id))];
- const {data:games,error}=ids.length?await sb.from("games").select("id,title,icon_url,thumbnail_url").in("id",ids).eq("status","published").order("title"):{data:[],error:null};
+ const {data:games,error}=ids.length?await sb.from("games").select("id,title,icon_url,thumbnail_url").in("id",ids).order("title"):{data:[],error:null};
  if(error){gameList.innerHTML='<p class="social-muted">Unable to load communities.</p>';return}
  const {data:cms}=await sb.from("game_communities").select("id,name,image_url");
  const gameById=new Map((games||[]).map(g=>[g.id,g])),cmById=new Map((cms||[]).map(x=>[x.id,x])),grouped=new Map();
