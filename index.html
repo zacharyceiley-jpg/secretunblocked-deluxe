@@ -874,7 +874,7 @@ function loadFromDeluxe(onLoaded) {
     <section id="communityPage" class="page deluxe-community-page"><div class="community-shell">
 <aside class="community-glass community-left">
 <div class="community-brand-block"><p class="community-kicker">MAIN COMMUNITY</p><button class="community-select active" type="button" data-open-main-community><img class="community-site-icon" src="/favicon.ico" alt="Secret Unblocked Deluxe"><span><strong>Secret Unblocked Deluxe</strong><small>Main community</small></span></button></div>
-<div class="community-side-heading"><h2>Game Communities</h2><span id="communityGameCount" class="community-count">0</span><button type="button" id="createGameCommunity" class="community-create-button" onclick="window.openCreateGameCommunityModal && window.openCreateGameCommunityModal()" aria-haspopup="dialog" aria-controls="createGameCommunityModal">＋ Create</button></div>
+<div class="community-side-heading"><h2>Game Communities</h2><span id="communityGameCount" class="community-count">0</span><button type="button" id="createGameCommunity" class="community-create-button" aria-haspopup="dialog" aria-controls="createGameCommunityModal">＋ Create</button></div>
 <input id="communityGameSearch" class="social-input community-search" placeholder="⌕ Search communities…" aria-label="Search game communities"><div id="communityGameList" class="community-game-list"></div>
 <div class="community-game-tools"><select id="gameServerSelect" class="social-input" aria-label="Choose a game community"><option value="">Choose a game…</option></select><button id="refreshGameServers" class="community-icon-button" type="button" title="Refresh communities">↻</button></div>
 <form id="createGameServerForm" class="community-add-game"><select id="ownedGameSelect" class="social-input" required><option value="">Choose one of your games…</option></select><button class="secondary" type="submit">＋ Add my game</button></form>
@@ -1196,6 +1196,14 @@ function loadFromDeluxe(onLoaded) {
     $(id).classList.add("hidden");
     $(id).setAttribute("aria-hidden","true");
   }
+
+  // Shared bridge for the separately-scoped community feature script.
+  Object.defineProperty(window,"sb",{configurable:true,get:()=>sb});
+  Object.defineProperty(window,"currentUser",{configurable:true,get:()=>currentUser});
+  window.openModal=openModal;
+  window.closeModal=closeModal;
+  window.openAuth=openAuth;
+
 
 
   // Exclusive themes are stored on the signed-in Supabase profile.
@@ -4618,7 +4626,7 @@ window.openCreateGameCommunityModal=async function(){
  if(owned?.length)select.innerHTML='<option value="">Create without linking a game</option>'+owned.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.title)+'</option>').join("");
  select.onchange=()=>{const g=owned?.find(x=>x.id===select.value);if(g&&!name.value)name.value=g.title;};
 };
-$("createGameCommunity")?.addEventListener("click",()=>window.openCreateGameCommunityModal());
+$("createGameCommunity")?.addEventListener("click",()=>{const modal=$("createGameCommunityModal");if(!modal)return;modal.classList.remove("hidden");modal.setAttribute("aria-hidden","false");window.openCreateGameCommunityModal?.();});
 document.querySelectorAll("[data-close-create-community]").forEach(b=>b.addEventListener("click",()=>closeModal("createGameCommunityModal")));
 $("createGameCommunityForm")?.addEventListener("submit",async e=>{
  e.preventDefault();
