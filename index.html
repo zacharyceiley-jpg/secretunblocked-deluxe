@@ -872,7 +872,7 @@ function loadFromDeluxe(onLoaded) {
           <p class="small-note">Words and phrases in this list are automatically shown as <strong>####</strong> in Community chat and friend messages. Search the list, add terms, or remove them here.</p>
           <div class="admin-tools-grid" style="grid-template-columns:minmax(0,1fr) auto;align-items:end">
             <label>Search or add a filtered word
-              <input id="communityWordFilterInput" class="admin-search" type="text" maxlength="60" autocomplete="off" placeholder="Type a word or phrase…">
+              <input id="communityWordFilterInput" class="admin-search" type="search" maxlength="60" autocomplete="off" oninput="renderCommunityWordFilter()" placeholder="Search or type a word to add…">
             </label>
             <button class="primary" id="communityWordFilterAdd" type="button" onclick="addCommunityFilteredWord()">＋ Add word</button>
           </div>
@@ -3453,7 +3453,7 @@ flushDeluxePlayTracking();
   async function addCommunityFilteredWord(){
     if (currentRole !== "admin" || !currentUser) return;
     const input = $("communityWordFilterInput");
-    const word = (input?.value || "").trim().replace(/\\s+/g," ");
+    const word = (input?.value || "").trim().replace(/\s+/g," ");
     const status = $("communityWordFilterStatus");
     if (!word) { if(status) status.textContent = "Enter a word or phrase first."; return; }
     if (!/^[a-z0-9 ]+$/i.test(word)) { if(status) status.textContent = "Use letters, numbers and spaces only."; return; }
