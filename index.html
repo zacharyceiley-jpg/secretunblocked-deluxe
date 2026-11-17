@@ -4638,9 +4638,9 @@ async function openSharedGameCommunity(id){
  $("communityChannelHint").textContent="Shared chat across linked games";$("unifiedChatInput").placeholder="Message this game community…";await sharedCommunityFeed();
 }
 async function sharedCommunityFeed(){
- const {data,error}=await sb.from("game_community_messages").select("id,sender_id,content,created_at,profiles!game_community_messages_sender_id_fkey(username)").eq("community_id",sharedCommunityId).eq("channel_type","fans").order("created_at").limit(100);
+ const {data,error}=await sb.from("game_community_messages").select("id,sender_id,content,created_at").eq("community_id",sharedCommunityId).eq("channel_type","fans").order("created_at").limit(100);
  if(error){$("unifiedChatFeed").textContent=error.message;return}
- $("unifiedChatFeed").innerHTML=(data||[]).map(m=>'<div class="social-post"><strong>'+esc(m.sender_id===currentUser.id?'You':m.profiles?.username||'User')+'</strong><small class="social-muted"> · '+esc(new Date(m.created_at).toLocaleString())+'</small><p>'+esc(m.content)+'</p></div>').join('')||'<p class="social-muted">Start the shared community conversation.</p>';
+ $("unifiedChatFeed").innerHTML=(data||[]).map(m=>'<div class="social-post"><strong>'+esc(m.sender_id===currentUser.id?'You':'Member')+'</strong><small class="social-muted"> · '+esc(new Date(m.created_at).toLocaleString())+'</small><p>'+esc(m.content)+'</p></div>').join('')||'<p class="social-muted">Start the shared community conversation.</p>';
 }
 const oldLoad=window.loadCommunity;window.loadCommunity=async()=>{communityMode();if(oldLoad)await oldLoad();await renderCommunityGameList()};
 })();
