@@ -391,6 +391,7 @@ body.light-mode .game-detail-description-card{background:#fff}
 .game-rating-panel h3{margin:0 0 8px;font-size:16px}.game-rating-summary{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;margin-bottom:11px}.game-rating-summary strong{font-size:20px;color:#facc15}
 .game-rating-stars{display:flex;gap:5px;flex-wrap:wrap}.game-rating-star{border:1px solid var(--line);background:var(--panel2);color:#77808a;border-radius:9px;width:42px;height:40px;font-size:23px;cursor:pointer;transition:.15s}
 .game-rating-star:hover,.game-rating-star.selected{color:#facc15;border-color:#d4a72c;background:rgba(250,204,21,.1)}.game-rating-star:disabled{opacity:.5;cursor:not-allowed}.game-rating-note{font-size:12px;color:var(--muted);margin-top:9px}.game-collections-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}.game-collection-poster{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);cursor:pointer;text-align:left;padding:0;color:var(--text)}.game-collection-poster img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover}.game-collection-poster strong{display:block;padding:12px;font-size:15px}.collection-game-choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;max-height:260px;overflow:auto}.collection-game-choice{display:flex;align-items:center;gap:9px;padding:8px;border:1px solid var(--line);border-radius:9px}.collection-game-choice img{width:42px;height:42px;object-fit:cover;border-radius:8px}.collection-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:14px;margin-top:18px}.collection-detail-game{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;cursor:pointer;color:var(--text)}.collection-detail-game img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px}.collection-detail-game strong{display:block;margin-top:8px;font-size:13px}@media(max-width:520px){.game-collections-row{grid-template-columns:repeat(2,minmax(0,1fr))}}.community-game-tools,.community-add-game,.community-game-channel-tabs{display:none!important}
+.community-create-button{border:1px solid var(--line);border-radius:9px;padding:6px 9px;background:var(--panel2);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}.community-create-button:hover{filter:brightness(1.15)}
 .community-game-list{display:flex;flex-direction:column;gap:9px}
 .community-game-card{border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:5px;background:rgba(255,255,255,.025)}
 .community-game-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px;border:0;border-radius:10px;background:transparent;color:inherit;cursor:pointer}
@@ -873,7 +874,7 @@ function loadFromDeluxe(onLoaded) {
     <section id="communityPage" class="page deluxe-community-page"><div class="community-shell">
 <aside class="community-glass community-left">
 <div class="community-brand-block"><p class="community-kicker">MAIN COMMUNITY</p><button class="community-select active" type="button" data-open-main-community><img class="community-site-icon" src="/favicon.ico" alt="Secret Unblocked Deluxe"><span><strong>Secret Unblocked Deluxe</strong><small>Main community</small></span></button></div>
-<div class="community-side-heading"><h2>Game Communities</h2><span id="communityGameCount" class="community-count">0</span></div>
+<div class="community-side-heading"><h2>Game Communities</h2><span id="communityGameCount" class="community-count">0</span><button type="button" id="createGameCommunity" class="community-create-button">＋ Create</button></div>
 <input id="communityGameSearch" class="social-input community-search" placeholder="⌕ Search communities…" aria-label="Search game communities"><div id="communityGameList" class="community-game-list"></div>
 <div class="community-game-tools"><select id="gameServerSelect" class="social-input" aria-label="Choose a game community"><option value="">Choose a game…</option></select><button id="refreshGameServers" class="community-icon-button" type="button" title="Refresh communities">↻</button></div>
 <form id="createGameServerForm" class="community-add-game"><select id="ownedGameSelect" class="social-input" required><option value="">Choose one of your games…</option></select><button class="secondary" type="submit">＋ Add my game</button></form>
@@ -4603,6 +4604,30 @@ $("communityGameSearch").addEventListener("input",e=>{const q=e.target.value.toL
 $("communityCreateGroup").addEventListener("click",()=>$("groupNameInput").focus());
 const gl=$("groupsList");if(gl){new MutationObserver(()=>gl.querySelectorAll(".social-row").forEach(row=>{const b=row.querySelector("button");if(!b||row.querySelector(".community-group-edit"))return;const id=(b.getAttribute("onclick")||"").match(/openGroupChat\('([^']+)'/)?.[1];if(!id)return;const edit=document.createElement("button");edit.type="button";edit.className="community-icon-button community-group-edit";edit.title="Edit group image";edit.textContent="✎";edit.addEventListener("click",async()=>{const cur=await sb.from("deluxe_groups").select("image_url").eq("id",id).maybeSingle();const url=prompt("Enter an HTTPS image URL for this group:",cur.data?.image_url||"");if(url===null)return;if(url.trim()&&!/^https:\/\//i.test(url.trim()))return alert("Please use an HTTPS image URL.");const {error}=await sb.from("deluxe_groups").update({image_url:url.trim()||null}).eq("id",id).eq("owner_id",currentUser.id);if(error)return alert(error.message);toast("Group updated","The group image has been saved.")});row.appendChild(edit)})).observe(gl,{childList:true,subtree:true})}
 const gameList=$("communityGameList");let sharedCommunityId=null;
+$("createGameCommunity")?.addEventListener("click",async()=>{
+ if(!currentUser)return alert("Please sign in first.");
+ const {data:owned,error:ownedError}=await sb.from("games").select("id,title").eq("creator_id",currentUser.id).order("title");
+ if(ownedError)return alert("Couldn't load your games: "+ownedError.message);
+ if(!owned?.length)return alert("You need to own a game before creating a game community. Create or publish a game first.");
+ const choices=owned.map(g=>g.title).join("\\n");
+ const gameTitle=prompt("Which of your games should start this community? Enter its exact title:\\n\\n"+choices);
+ if(gameTitle===null||!gameTitle.trim())return;
+ const matches=owned.filter(g=>g.title.toLowerCase()===gameTitle.trim().toLowerCase());
+ if(!matches.length)return alert("That title doesn't match one of your games.");
+ if(matches.length>1)return alert("More than one game has that title. Rename one so the titles are unique.");
+ const game=matches[0];
+ const name=prompt("Name your new game community:",game.title);
+ if(name===null||!name.trim())return;
+ const imageUrl=prompt("Optional community image URL (leave blank to use the game's icon):","");
+ if(imageUrl===null)return;
+ if(imageUrl.trim()&&!/^https:\\/\\//i.test(imageUrl.trim()))return alert("Please use an HTTPS image URL.");
+ const {data:created,error:createError}=await sb.from("game_communities").insert({owner_id:currentUser.id,name:name.trim(),image_url:imageUrl.trim()||null}).select("id").single();
+ if(createError)return alert("Couldn't create the community: "+createError.message);
+ const {error:mapError}=await sb.from("game_community_games").upsert({game_id:game.id,community_id:created.id},{onConflict:"game_id"});
+ if(mapError)return alert("The community was created, but its game couldn't be linked: "+mapError.message);
+ await renderCommunityGameList();
+ toast("Community created",name.trim()+" is ready. You can link more of your games from its card.");
+});
 async function renderCommunityGameList(){
  if(!gameList||!currentUser)return;
  const {data:maps,error:mapError}=await sb.from("game_community_games").select("game_id,community_id");
