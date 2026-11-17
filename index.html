@@ -893,7 +893,7 @@ function loadFromDeluxe(onLoaded) {
 <div class="community-right-section community-groups-section"><div class="community-side-heading"><h2>Group Chats</h2><button type="button" class="community-icon-button" id="communityCreateGroup" title="Create a group">＋</button></div><form id="createGroupForm" class="community-create-group"><input id="groupNameInput" class="social-input" maxlength="60" placeholder="New group name" required><button class="secondary" type="submit">Create</button></form><div id="groupsList" class="community-groups-list"><p class="social-muted">Your group chats appear here.</p></div></div>
 </aside></div></section>
 <div id="friendChatModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" onclick="closeModal('friendChatModal')"></div><section class="modal-card" style="width:min(620px,100%)"><button class="modal-close" onclick="closeModal('friendChatModal')">×</button><p class="eyebrow">FRIENDS</p><h2 id="friendChatTitle">Chat</h2><div id="friendChatFeed" class="social-feed"></div><form id="friendChatForm"><textarea id="friendChatInput" class="social-textarea" maxlength="1000" placeholder="Message your friend…" required></textarea><button class="primary" type="submit">Send</button></form></section></div>
-<div id="groupChatModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" onclick="closeModal('groupChatModal')"></div><section class="modal-card" style="width:min(620px,100%)"><button class="modal-close" onclick="closeModal('groupChatModal')">×</button><p class="eyebrow">GROUP CHAT</p><h2 id="groupChatTitle">Group</h2><div class="social-actions"><select id="groupInviteFriend" class="social-select" aria-label="Choose a friend to invite"><option value="">Choose a friend…</option></select><button id="groupInviteButton" class="secondary" type="button">Add friend</button></div><div id="groupChatFeed" class="social-feed"></div><form id="groupChatForm"><textarea id="groupChatInput" class="social-textarea" maxlength="1000" placeholder="Message the group…" required></textarea><button class="primary" type="submit">Send</button></form></section></div>
+<div id="createGameCommunityModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" data-close-create-community></div><section class="modal-card" style="width:min(500px,100%)"><button class="modal-close" type="button" data-close-create-community>×</button><p class="eyebrow">GAME COMMUNITIES</p><h2>Create a community</h2><p class="small-note">Choose one of your games to start a shared community. You can link more games later.</p><form id="createGameCommunityForm"><label for="createCommunityGame">Starting game</label><select id="createCommunityGame" class="social-input" required><option value="">Loading your games…</option></select><label for="createCommunityName">Community name</label><input id="createCommunityName" class="social-input" maxlength="60" placeholder="e.g. My Game Community" required><label for="createCommunityImage">Community image URL (optional)</label><input id="createCommunityImage" class="social-input" type="url" placeholder="https://…"><div class="social-actions" style="justify-content:flex-end;margin-top:18px"><button type="button" class="secondary" data-close-create-community>Cancel</button><button type="submit" class="primary" id="createCommunitySubmit">Create community</button></div><p id="createCommunityMessage" class="auth-message" role="status"></p></form></section></div><div id="groupChatModal" class="modal hidden" aria-hidden="true"><div class="modal-backdrop" onclick="closeModal('groupChatModal')"></div><section class="modal-card" style="width:min(620px,100%)"><button class="modal-close" onclick="closeModal('groupChatModal')">×</button><p class="eyebrow">GROUP CHAT</p><h2 id="groupChatTitle">Group</h2><div class="social-actions"><select id="groupInviteFriend" class="social-select" aria-label="Choose a friend to invite"><option value="">Choose a friend…</option></select><button id="groupInviteButton" class="secondary" type="button">Add friend</button></div><div id="groupChatFeed" class="social-feed"></div><form id="groupChatForm"><textarea id="groupChatInput" class="social-textarea" maxlength="1000" placeholder="Message the group…" required></textarea><button class="primary" type="submit">Send</button></form></section></div>
 <div id="deluxeToast" class="deluxe-toast hidden" role="status" aria-live="polite"><strong id="deluxeToastTitle"></strong><p id="deluxeToastBody"></p></div><section id="inboxPage" class="page">
       <div class="page-title">
         <p class="eyebrow">MESSAGES</p>
@@ -4605,28 +4605,28 @@ $("communityCreateGroup").addEventListener("click",()=>$("groupNameInput").focus
 const gl=$("groupsList");if(gl){new MutationObserver(()=>gl.querySelectorAll(".social-row").forEach(row=>{const b=row.querySelector("button");if(!b||row.querySelector(".community-group-edit"))return;const id=(b.getAttribute("onclick")||"").match(/openGroupChat\('([^']+)'/)?.[1];if(!id)return;const edit=document.createElement("button");edit.type="button";edit.className="community-icon-button community-group-edit";edit.title="Edit group image";edit.textContent="✎";edit.addEventListener("click",async()=>{const cur=await sb.from("deluxe_groups").select("image_url").eq("id",id).maybeSingle();const url=prompt("Enter an HTTPS image URL for this group:",cur.data?.image_url||"");if(url===null)return;if(url.trim()&&!/^https:\/\//i.test(url.trim()))return alert("Please use an HTTPS image URL.");const {error}=await sb.from("deluxe_groups").update({image_url:url.trim()||null}).eq("id",id).eq("owner_id",currentUser.id);if(error)return alert(error.message);toast("Group updated","The group image has been saved.")});row.appendChild(edit)})).observe(gl,{childList:true,subtree:true})}
 const gameList=$("communityGameList");let sharedCommunityId=null;
 $("createGameCommunity")?.addEventListener("click",async()=>{
- if(!currentUser)return alert("Please sign in first.");
- const {data:owned,error:ownedError}=await sb.from("games").select("id,title").eq("creator_id",currentUser.id).order("title");
- if(ownedError)return alert("Couldn't load your games: "+ownedError.message);
- if(!owned?.length)return alert("You need to own a game before creating a game community. Create or publish a game first.");
- const choices=owned.map(g=>g.title).join("\\n");
- const gameTitle=prompt("Which of your games should start this community? Enter its exact title:\\n\\n"+choices);
- if(gameTitle===null||!gameTitle.trim())return;
- const matches=owned.filter(g=>g.title.toLowerCase()===gameTitle.trim().toLowerCase());
- if(!matches.length)return alert("That title doesn't match one of your games.");
- if(matches.length>1)return alert("More than one game has that title. Rename one so the titles are unique.");
- const game=matches[0];
- const name=prompt("Name your new game community:",game.title);
- if(name===null||!name.trim())return;
- const imageUrl=prompt("Optional community image URL (leave blank to use the game's icon):","");
- if(imageUrl===null)return;
- if(imageUrl.trim()&&!imageUrl.trim().toLowerCase().startsWith("https://"))return alert("Please use an HTTPS image URL.");
- const {data:created,error:createError}=await sb.from("game_communities").insert({owner_id:currentUser.id,name:name.trim(),image_url:imageUrl.trim()||null}).select("id").single();
- if(createError)return alert("Couldn't create the community: "+createError.message);
- const {error:mapError}=await sb.from("game_community_games").upsert({game_id:game.id,community_id:created.id},{onConflict:"game_id"});
- if(mapError)return alert("The community was created, but its game couldn't be linked: "+mapError.message);
- await renderCommunityGameList();
- toast("Community created",name.trim()+" is ready. You can link more of your games from its card.");
+ if(!currentUser){openAuth("login");return;}
+ const select=$("createCommunityGame"),name=$("createCommunityName"),msg=$("createCommunityMessage");
+ msg.textContent="Loading your games…";select.innerHTML='<option value="">Loading your games…</option>';name.value="";$("createCommunityImage").value="";
+ openModal("createGameCommunityModal");
+ const {data:owned,error}=await sb.from("games").select("id,title").eq("creator_id",currentUser.id).order("title");
+ if(error){msg.textContent="Couldn't load your games: "+error.message;select.innerHTML='<option value="">Unable to load games</option>';return;}
+ if(!owned?.length){msg.textContent="You need to own a game before creating a community. Create or publish a game first.";select.innerHTML='<option value="">No owned games found</option>';return;}
+ select.innerHTML='<option value="">Choose a game…</option>'+owned.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.title)+'</option>').join("");
+ msg.textContent="";select.onchange=()=>{const g=owned.find(x=>x.id===select.value);if(g&&!name.value)name.value=g.title;};
+});
+document.querySelectorAll("[data-close-create-community]").forEach(b=>b.addEventListener("click",()=>closeModal("createGameCommunityModal")));
+$("createGameCommunityForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();if(!currentUser)return;
+ const gameId=$("createCommunityGame").value,name=$("createCommunityName").value.trim(),imageUrl=$("createCommunityImage").value.trim(),msg=$("createCommunityMessage"),submit=$("createCommunitySubmit");
+ if(!gameId||!name){msg.textContent="Choose a starting game and enter a community name.";return;}
+ if(imageUrl&&!imageUrl.toLowerCase().startsWith("https://")){msg.textContent="Please use an HTTPS image URL.";return;}
+ submit.disabled=true;submit.textContent="Creating…";msg.textContent="Creating your community…";
+ const {data:created,error:createError}=await sb.from("game_communities").insert({owner_id:currentUser.id,name,image_url:imageUrl||null}).select("id").single();
+ if(createError){msg.textContent="Couldn't create the community: "+createError.message;submit.disabled=false;submit.textContent="Create community";return;}
+ const {error:mapError}=await sb.from("game_community_games").upsert({game_id:gameId,community_id:created.id},{onConflict:"game_id"});
+ if(mapError){msg.textContent="Community created, but the game couldn't be linked: "+mapError.message;submit.disabled=false;submit.textContent="Create community";return;}
+ closeModal("createGameCommunityModal");submit.disabled=false;submit.textContent="Create community";await renderCommunityGameList();toast("Community created",name+" is ready. You can link more games from its card.");
 });
 async function renderCommunityGameList(){
  if(!gameList||!currentUser)return;
