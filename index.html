@@ -463,6 +463,12 @@ body{
 }
 </style>
 
+<style id="community-word-filter-admin">
+.community-word-filter-list{display:grid;gap:7px;margin-top:14px;max-height:340px;overflow:auto}
+.community-word-filter-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.community-word-filter-row strong{overflow-wrap:anywhere}
+.community-word-filter-remove{flex:0 0 auto}
+</style>
 </head>
 <body>
   <header class="topbar deluxe-topbar">
@@ -857,6 +863,21 @@ function loadFromDeluxe(onLoaded) {
             <label>Search users<input id="adminModerationSearch" type="search" placeholder="Search users…"></label>
             <div id="adminModerationUsers" class="user-grid"><div class="loading">Loading users…</div></div>
           </div>
+        </div>
+
+        <div class="section-heading" style="margin-top:30px">
+          <div><p class="eyebrow">COMMUNITY SAFETY</p><h2>Word Filter</h2></div>
+        </div>
+        <div class="game-uploader">
+          <p class="small-note">Words and phrases in this list are automatically shown as <strong>####</strong> in Community chat and friend messages. Search the list, add terms, or remove them here.</p>
+          <div class="admin-tools-grid" style="grid-template-columns:minmax(0,1fr) auto;align-items:end">
+            <label>Search or add a filtered word
+              <input id="communityWordFilterInput" class="admin-search" type="text" maxlength="60" autocomplete="off" placeholder="Type a word or phrase…">
+            </label>
+            <button class="primary" id="communityWordFilterAdd" type="button" onclick="addCommunityFilteredWord()">＋ Add word</button>
+          </div>
+          <div id="communityWordFilterStatus" class="auth-message" role="status" aria-live="polite"></div>
+          <div id="communityWordFilterList" class="community-word-filter-list"><div class="loading">Loading filtered words…</div></div>
         </div>
 
         <div class="section-heading">
@@ -3401,6 +3422,63 @@ flushDeluxePlayTracking();
     }
   }
 
+  let communityWordFilterRows = [];
+
+  function renderCommunityWordFilter(){
+    const root = $("communityWordFilterList");
+    if (!root) return;
+    const q = ($("communityWordFilterInput")?.value || "").trim().toLowerCase();
+    const rows = communityWordFilterRows.filter(row => String(row.word || "").toLowerCase().includes(q));
+    root.innerHTML = rows.map(row => `
+      <div class="community-word-filter-row">
+        <strong>${escapeHtml(row.word)}</strong>
+        <button class="danger-button community-word-filter-remove" type="button" onclick="removeCommunityFilteredWord('${row.id}')">Remove</button>
+      </div>
+    `).join("") || '<div class="loading">No filtered words match your search.</div>';
+  }
+
+  async function loadCommunityWordFilter(){
+    const root = $("communityWordFilterList");
+    if (!root || currentRole !== "admin") return;
+    root.innerHTML = '<div class="loading">Loading filtered words…</div>';
+    const {data,error} = await sb.from("community_word_filter").select("id,word").order("word",{ascending:true});
+    if (error) {
+      root.innerHTML = '<div class="loading">Could not load the word filter: ' + escapeHtml(error.message) + '</div>';
+      return;
+    }
+    communityWordFilterRows = data || [];
+    renderCommunityWordFilter();
+  }
+
+  async function addCommunityFilteredWord(){
+    if (currentRole !== "admin" || !currentUser) return;
+    const input = $("communityWordFilterInput");
+    const word = (input?.value || "").trim().replace(/\\s+/g," ");
+    const status = $("communityWordFilterStatus");
+    if (!word) { if(status) status.textContent = "Enter a word or phrase first."; return; }
+    if (!/^[a-z0-9 ]+$/i.test(word)) { if(status) status.textContent = "Use letters, numbers and spaces only."; return; }
+    const exists = communityWordFilterRows.some(row => row.word.toLowerCase() === word.toLowerCase());
+    if (exists) { if(status) status.textContent = "That word is already filtered."; return; }
+    const {error} = await sb.from("community_word_filter").insert({word,created_by:currentUser.id});
+    if (error) { if(status) status.textContent = error.message; return; }
+    input.value = "";
+    if(status) status.textContent = '"' + word + '" added. New messages will be filtered.';
+    await loadCommunityWordFilter();
+  }
+
+  async function removeCommunityFilteredWord(id){
+    if (currentRole !== "admin" || !confirm("Remove this word from the filter?")) return;
+    const {error} = await sb.from("community_word_filter").delete().eq("id",id);
+    const status = $("communityWordFilterStatus");
+    if (error) { if(status) status.textContent = error.message; return; }
+    if(status) status.textContent = "Word removed. It will no longer be filtered in new messages.";
+    await loadCommunityWordFilter();
+  }
+
+  window.renderCommunityWordFilter = renderCommunityWordFilter;
+  window.addCommunityFilteredWord = addCommunityFilteredWord;
+  window.removeCommunityFilteredWord = removeCommunityFilteredWord;
+
   async function loadAdminPanel(){
     const access = $("adminAccessMessage");
     const dashboard = $("adminDashboard");
@@ -3415,6 +3493,7 @@ flushDeluxePlayTracking();
     dashboard.classList.remove("hidden");
     await loadAdminUserTools();
     await loadAdminSeasonalBundles();
+    await loadCommunityWordFilter();
 
     const [
       usersResult,
