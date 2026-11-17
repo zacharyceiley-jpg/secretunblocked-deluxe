@@ -4620,7 +4620,7 @@ $("createGameCommunity")?.addEventListener("click",async()=>{
  if(name===null||!name.trim())return;
  const imageUrl=prompt("Optional community image URL (leave blank to use the game's icon):","");
  if(imageUrl===null)return;
- if(imageUrl.trim()&&!/^https:\\/\\//i.test(imageUrl.trim()))return alert("Please use an HTTPS image URL.");
+ if(imageUrl.trim()&&!imageUrl.trim().toLowerCase().startsWith("https://"))return alert("Please use an HTTPS image URL.");
  const {data:created,error:createError}=await sb.from("game_communities").insert({owner_id:currentUser.id,name:name.trim(),image_url:imageUrl.trim()||null}).select("id").single();
  if(createError)return alert("Couldn't create the community: "+createError.message);
  const {error:mapError}=await sb.from("game_community_games").upsert({game_id:game.id,community_id:created.id},{onConflict:"game_id"});
