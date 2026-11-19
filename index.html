@@ -2127,7 +2127,18 @@ function loadFromDeluxe(onLoaded) {
 
   }
   async function buyUserTheme(gameId){const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:null});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();awardDailyTask("unlock_theme");alert("Theme purchased!");if(activeViewedProfileId)await viewProfile(activeViewedProfileId);}
-  async function giftUserTheme(gameId){const username=prompt("Enter the recipient's exact Deluxe username:");if(!username)return;const {data:user,error:e}=await sb.from("profiles").select("id,username").ilike("username",username).maybeSingle();if(e||!user)return alert("User not found.");if(user.id===currentUser.id)return alert("You already own this theme.");const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:user.id});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();await loadThemeMarketplace();alert("Theme gifted to "+user.username+"!");}
+  async function giftUserTheme(gameId){
+    const username=prompt("Enter the recipient's exact Deluxe username:");
+    if(!username)return;
+    const {data:user,error:e}=await sb.from("profiles").select("id,username").ilike("username",username).maybeSingle();
+    if(e||!user)return alert("User not found.");
+    if(user.id===currentUser.id)return alert("You already own this theme.");
+    const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:user.id});
+    if(error)return alert(error.message);
+    delubuxBalance=Number(data.balance);updateDelubuxBalance();
+    alert("Theme gifted to "+user.username+"!");
+    if(activeViewedProfileId)await viewProfile(activeViewedProfileId);
+  }
   async function adminGrantDelubux(){if(currentRole!=="admin")return;const id=$("adminDelubuxUser").value,amount=Number($("adminDelubuxAmount").value);if(!id||!Number.isInteger(amount)||amount<1||amount>100000)return alert("Choose a user and valid amount.");const {data,error}=await sb.rpc("delubux_admin_grant",{p_user_id:id,p_amount:amount});$("adminDelubuxStatus").textContent=error?error.message:"Granted "+amount+" Delubux. Balance: "+data.balance;}
   function updateAccountUI(){
     updateGameCreationButton();
@@ -2135,6 +2146,7 @@ function loadFromDeluxe(onLoaded) {
     const settingsSignOut = $("settingsSignOut");
     if (settingsStatus) settingsStatus.textContent = currentUser ? "Signed in as " + (currentProfile?.username || currentUser.email || "Deluxe member") : "You are signed out";
     if (settingsSignOut) settingsSignOut.disabled = !currentUser;
+    renderProfileBioSettings();
     const btn = $("accountButton");
     const adminLink = $("adminNavLink");
     if (adminLink) {
