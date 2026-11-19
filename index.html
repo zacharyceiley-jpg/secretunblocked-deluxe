@@ -1251,9 +1251,13 @@ function loadFromDeluxe(onLoaded) {
     const backgroundImage = $("gameThemeBackgroundImage").value.trim();
     if (!themeName) return setGameThemeDesignerMessage("Enter a theme name.", true);
     if (backgroundImage && !/^https?:\/\//i.test(backgroundImage)) return setGameThemeDesignerMessage("Background image must use an http or https URL.", true);
-    const payload = {game_id:gameId, creator_id:currentUser.id, theme_name:themeName, background_color:$("gameThemeBackground").value, text_color:$("gameThemeText").value, accent_color:$("gameThemeAccent").value, background_image_url:backgroundImage || null, updated_at:new Date().toISOString()};
+    const previousTheme=customGameThemes.find(t=>t.game_id===gameId);
+    let hostedBackground=backgroundImage;
+    try { hostedBackground=await hostDeluxeImage(backgroundImage,"game-theme-background"); } catch(e) { return setGameThemeDesignerMessage("Image upload failed: "+e.message,true); }
+    const payload = {game_id:gameId, creator_id:currentUser.id, theme_name:themeName, background_color:$("gameThemeBackground").value, text_color:$("gameThemeText").value, accent_color:$("gameThemeAccent").value, background_image_url:hostedBackground || null, updated_at:new Date().toISOString()};
     const {error} = await sb.from("game_theme_designs").upsert(payload, {onConflict:"game_id"});
     if (error) return setGameThemeDesignerMessage(error.message, true);
+    if(previousTheme?.background_image_url!==hostedBackground) await cleanupReplacedDeluxeImages([previousTheme?.background_image_url],[hostedBackground]);
     setGameThemeDesignerMessage("Theme saved! Everyone must play this game for 60 new seconds to unlock it.");
     await loadGameThemeDesigner();
   }
@@ -2222,7 +2226,10 @@ function loadFromDeluxe(onLoaded) {
     }
     if (button) button.disabled = true;
     if (message) message.textContent = "Saving avatar…";
-    let hostedUrl=url;\n    try { if(url) hostedUrl=await hostDeluxeImage(url,"profile-avatar"); } catch(e) { if(button) button.disabled=false; if(message) message.textContent="Image upload failed: "+e.message; return; }\n    const oldAvatar=currentProfile?.avatar_url;\n    const {data,error} = await sb.from("profiles").update({avatar_url:hostedUrl}).eq("id",currentUser.id).select("*").single();
+    let hostedUrl=url;
+    try { if(url) hostedUrl=await hostDeluxeImage(url,"profile-avatar"); } catch(e) { if(button) button.disabled=false; if(message) message.textContent="Image upload failed: "+e.message; return; }
+    const oldAvatar=currentProfile?.avatar_url;
+    const {data,error} = await sb.from("profiles").update({avatar_url:hostedUrl}).eq("id",currentUser.id).select("*").single();
     if (button) button.disabled = false;
     if (error) {
       console.error("Avatar update failed:", error);
@@ -2230,6 +2237,7 @@ function loadFromDeluxe(onLoaded) {
       return;
     }
     currentProfile = data;
+    if(oldAvatar && oldAvatar!==hostedUrl) await cleanupReplacedDeluxeImages([oldAvatar],[hostedUrl]);
     updateAccountUI();
     renderAvatarCustomizer();
     if (message) message.textContent = remove ? "Avatar removed from your profile." : "Avatar saved and synced to your account.";
@@ -2787,9 +2795,12 @@ function loadFromDeluxe(onLoaded) {
     const ids=[...$("collectionGameChoices").querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
     $("saveGameCollectionButton").disabled=true;$("collectionEditorMessage").textContent="Saving…";
     try{
+      const previousCollection=editingCollectionId?gameCollections.find(x=>x.id===editingCollectionId):null;
+      const hostedImage=await hostDeluxeImage(image_url,"collection-poster");
       let collectionId=editingCollectionId;
-      if(collectionId){const {error}=await sb.from("game_collections").update({title,image_url,updated_at:new Date().toISOString()}).eq("id",collectionId).eq("owner_id",currentUser.id);if(error)throw error;}
-      else{const {data,error}=await sb.from("game_collections").insert({owner_id:currentUser.id,title,image_url}).select("id").single();if(error)throw error;collectionId=data.id;}
+      if(collectionId){const {error}=await sb.from("game_collections").update({title,image_url:hostedImage,updated_at:new Date().toISOString()}).eq("id",collectionId).eq("owner_id",currentUser.id);if(error)throw error;}
+      else{const {data,error}=await sb.from("game_collections").insert({owner_id:currentUser.id,title,image_url:hostedImage}).select("id").single();if(error)throw error;collectionId=data.id;}
+      if(previousCollection?.image_url!==hostedImage) await cleanupReplacedDeluxeImages([previousCollection?.image_url],[hostedImage]);
       const {error:removeError}=await sb.from("game_collection_items").delete().eq("collection_id",collectionId);if(removeError)throw removeError;
       if(ids.length){const {data:owned,error:ownedError}=await sb.from("games").select("id").eq("creator_id",currentUser.id).in("id",ids);if(ownedError)throw ownedError;if(owned.length!==ids.length)throw new Error("Collections can only contain your own games.");const {error}=await sb.from("game_collection_items").insert(ids.map((game_id,position)=>({collection_id:collectionId,game_id,position})));if(error)throw error;}
       await loadGameCollections();renderGameCollections($("gameSearch")?.value.trim().toLowerCase()||"");closeGameCollectionEditor();
@@ -2891,7 +2902,9 @@ function loadFromDeluxe(onLoaded) {
     if(title_image_url && !validGameUrl(title_image_url)) return setGameFormMessage("The title image URL must be HTTP or HTTPS.",true);
     $("submitGameButton").disabled=true;
     setGameFormMessage("Submitting game…");
-    let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;\n    try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }\n    const {error}=await sb.from("games").insert({creator_id:currentUser.id,title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,status:"pending"});
+    let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;
+    try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }
+    const {error}=await sb.from("games").insert({creator_id:currentUser.id,title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,status:"pending"});
     $("submitGameButton").disabled=false;
     if(error){console.error(error);return setGameFormMessage(error.message,true);}
     $("gameForm").reset();
@@ -3022,9 +3035,15 @@ function loadFromDeluxe(onLoaded) {
     if (title_image_url && !validGameUrl(title_image_url)) return setGameFormMessage("The title image URL must be HTTP or HTTPS.", true);
     $("submitGameButton").disabled=true;
     setGameFormMessage("Saving changes…");
-    let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;\n    try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }\n    const previous=allPublishedGames.find(g=>g.id===id);\n    const oldImages=[previous?.title_image_url,previous?.thumbnail_url,previous?.icon_url,...(previous?.thumbnail_images||[])];\n    const newImages=[hostedTitle,hostedIcon,...hostedThumbs];\n    const {error} = await sb.from("games") .update({title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
+    let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;
+    try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }
+    const previous=allPublishedGames.find(g=>g.id===id);
+    const oldImages=[previous?.title_image_url,previous?.thumbnail_url,previous?.icon_url,...(previous?.thumbnail_images||[])];
+    const newImages=[hostedTitle,hostedIcon,...hostedThumbs];
+    const {error} = await sb.from("games") .update({title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
     $("submitGameButton").disabled=false;
     if (error) return setGameFormMessage(error.message,true);
+    await cleanupReplacedDeluxeImages(oldImages,newImages);
     $("gameUploader").classList.add("hidden");
     resetGameEditor();
     await loadGames();
