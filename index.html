@@ -2180,12 +2180,22 @@ function loadFromDeluxe(onLoaded) {
     if(currentRole!=="admin"||!currentUser) return alert("Admin access required.");
     if(!confirm("Copy existing Deluxe images into Supabase Storage and update their database references? Original external images will be left untouched. This may take a few minutes.")) return;
     const button=$("migrateDeluxeImagesButton"); if(button){button.disabled=true;button.textContent="Migrating images…";}
+    let total=0,skipped=0,rounds=0,errors=[];
     try {
-      const {data,error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"migrate"}});
-      if(error) throw error; if(data?.error) throw new Error(data.error);
-      const failed=Array.isArray(data.errors)?data.errors.length:0;
-      alert("Image migration finished.\nMigrated: "+(data.migrated||0)+"\nSkipped: "+(data.skipped||0)+"\nErrors: "+failed+(failed?"\n\nFirst issue: "+data.errors[0]:""));
-    } catch(error) { alert("Image migration failed: "+(error.message||error)); }
+      let done=false;
+      while(!done && rounds<100) {
+        rounds++;
+        const {data,error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"migrate"}});
+        if(error) throw error;
+        if(data?.error) throw new Error(data.error);
+        total+=Number(data?.migrated||0); skipped+=Number(data?.skipped||0);
+        if(Array.isArray(data?.errors)) errors.push(...data.errors);
+        done=data?.done!==false;
+        if(button) button.textContent="Migrating… "+total+" copied";
+      }
+      if(!done) throw new Error("Migration paused after 100 batches. You can run it again to continue.");
+      alert("Image migration finished.\nMigrated: "+total+"\nSkipped: "+skipped+"\nErrors: "+errors.length+(errors.length?"\n\nFirst issue: "+errors[0]:""));
+    } catch(error) { alert("Image migration stopped: "+(error.message||error)+"\nCopied so far: "+total+". Run it again to continue."); }
     finally { if(button){button.disabled=false;button.textContent="Migrate existing images to Supabase";} }
   }
 
