@@ -2168,7 +2168,7 @@ function loadFromDeluxe(onLoaded) {
     const url=String(value||"").trim(); if(!url) return null;
     if(url.includes("/storage/v1/object/public/deluxe-images/")) return url;
     const {data,error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"upload",url,category}});
-    if(error) throw new Error(error.message||"Image upload failed.");
+    if(error) { let detail=null; try { detail=await error.context?.clone().json(); } catch {} throw new Error(detail?.error || error.message || "Image upload failed."); }
     if(data?.error) throw new Error(data.error);
     if(!data?.url) throw new Error("Image host did not return a URL.");
     return data.url;
@@ -2198,7 +2198,7 @@ function loadFromDeluxe(onLoaded) {
       while(!done && rounds<100) {
         rounds++;
         const {data,error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"migrate"}});
-        if(error) throw error;
+        if(error) { let detail=null; try { detail=await error.context?.clone().json(); } catch {} throw new Error(detail?.error || error.message || "Image migration request failed."); }
         if(data?.error) throw new Error(data.error);
         total+=Number(data?.migrated||0); skipped+=Number(data?.skipped||0);
         if(Array.isArray(data?.errors)) errors.push(...data.errors);
