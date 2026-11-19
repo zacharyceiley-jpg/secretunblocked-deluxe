@@ -833,7 +833,7 @@ function loadFromDeluxe(onLoaded) {
         <p>Your account does not currently have the admin role.</p>
       </div>
 
-      <div id="adminDashboard" class="hidden">
+      <div id="adminDashboard" class="hidden">\n        <article class="feature" style="margin:0 0 20px"><h3>Image storage</h3><p>Newly saved images are copied to Supabase Storage. Migrate existing Deluxe images here.</p><button id="migrateDeluxeImagesButton" class="secondary" type="button" onclick="runDeluxeImageMigration()">Migrate existing images to Supabase</button></article>
         <div class="feature-grid" style="margin-bottom:22px">
           <article class="feature"><span>👥</span><h3 id="adminUserCount">—</h3><p>Registered users</p></article>
           <article class="feature"><span>🎮</span><h3 id="adminGameCount">—</h3><p>Total games</p></article>
@@ -2144,6 +2144,44 @@ function loadFromDeluxe(onLoaded) {
     btn.innerHTML = (avatarUrl ? '<img class="top-profile-avatar" src="' + escapeHtml(avatarUrl) + '" alt="">' : "👤") + '<span class="profile-hover-card">' + escapeHtml(currentProfile?.username || currentUser.email || "Account") + '</span>';
   }
 
+
+  async function hostDeluxeImage(value, category="image") {
+    const url=String(value||"").trim(); if(!url) return null;
+    if(url.includes("/storage/v1/object/public/deluxe-images/")) return url;
+    const {data,error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"upload",url,category}});
+    if(error) throw new Error(error.message||"Image upload failed.");
+    if(data?.error) throw new Error(data.error);
+    if(!data?.url) throw new Error("Image host did not return a URL.");
+    return data.url;
+  }
+  async function hostDeluxeImages(values, category="image") {
+    const out=[]; for(const value of values||[]) out.push(await hostDeluxeImage(value,category)); return out;
+  }
+  async function cleanupReplacedDeluxeImages(oldValues,newValues) {
+    const keep=new Set((newValues||[]).filter(Boolean));
+    for(const url of [...new Set((oldValues||[]).filter(Boolean))]) {
+      if(keep.has(url)) continue;
+      const marker="/storage/v1/object/public/deluxe-images/", at=String(url).indexOf(marker);
+      if(at<0) continue;
+      const path=decodeURIComponent(String(url).slice(at+marker.length));
+      if(!path.startsWith(currentUser?.id+"/")) continue;
+      const {error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"delete",path}});
+      if(error) console.warn("Old image cleanup failed:",error.message);
+    }
+  }
+  async function runDeluxeImageMigration() {
+    if(currentRole!=="admin"||!currentUser) return alert("Admin access required.");
+    if(!confirm("Copy existing Deluxe images into Supabase Storage and update their database references? Original external images will be left untouched. This may take a few minutes.")) return;
+    const button=$("migrateDeluxeImagesButton"); if(button){button.disabled=true;button.textContent="Migrating images…";}
+    try {
+      const {data,error}=await sb.functions.invoke("deluxe-image-host",{body:{action:"migrate"}});
+      if(error) throw error; if(data?.error) throw new Error(data.error);
+      const failed=Array.isArray(data.errors)?data.errors.length:0;
+      alert("Image migration finished.\nMigrated: "+(data.migrated||0)+"\nSkipped: "+(data.skipped||0)+"\nErrors: "+failed+(failed?"\n\nFirst issue: "+data.errors[0]:""));
+    } catch(error) { alert("Image migration failed: "+(error.message||error)); }
+    finally { if(button){button.disabled=false;button.textContent="Migrate existing images to Supabase";} }
+  }
+
   function safeAvatarUrl(value) {
     const raw = String(value || "").trim();
     if (!raw) return "";
@@ -2184,7 +2222,7 @@ function loadFromDeluxe(onLoaded) {
     }
     if (button) button.disabled = true;
     if (message) message.textContent = "Saving avatar…";
-    const {data,error} = await sb.from("profiles").update({avatar_url:url}).eq("id",currentUser.id).select("*").single();
+    let hostedUrl=url;\n    try { if(url) hostedUrl=await hostDeluxeImage(url,"profile-avatar"); } catch(e) { if(button) button.disabled=false; if(message) message.textContent="Image upload failed: "+e.message; return; }\n    const oldAvatar=currentProfile?.avatar_url;\n    const {data,error} = await sb.from("profiles").update({avatar_url:hostedUrl}).eq("id",currentUser.id).select("*").single();
     if (button) button.disabled = false;
     if (error) {
       console.error("Avatar update failed:", error);
@@ -2853,7 +2891,7 @@ function loadFromDeluxe(onLoaded) {
     if(title_image_url && !validGameUrl(title_image_url)) return setGameFormMessage("The title image URL must be HTTP or HTTPS.",true);
     $("submitGameButton").disabled=true;
     setGameFormMessage("Submitting game…");
-    const {error}=await sb.from("games").insert({creator_id:currentUser.id,title,title_image_url:title_image_url||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url,thumbnail_images,icon_url:icon_url||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,status:"pending"});
+    let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;\n    try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }\n    const {error}=await sb.from("games").insert({creator_id:currentUser.id,title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,status:"pending"});
     $("submitGameButton").disabled=false;
     if(error){console.error(error);return setGameFormMessage(error.message,true);}
     $("gameForm").reset();
@@ -2984,7 +3022,7 @@ function loadFromDeluxe(onLoaded) {
     if (title_image_url && !validGameUrl(title_image_url)) return setGameFormMessage("The title image URL must be HTTP or HTTPS.", true);
     $("submitGameButton").disabled=true;
     setGameFormMessage("Saving changes…");
-    const {error} = await sb.from("games") .update({title,title_image_url:title_image_url||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url,thumbnail_images,icon_url:icon_url||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
+    let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;\n    try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }\n    const previous=allPublishedGames.find(g=>g.id===id);\n    const oldImages=[previous?.title_image_url,previous?.thumbnail_url,previous?.icon_url,...(previous?.thumbnail_images||[])];\n    const newImages=[hostedTitle,hostedIcon,...hostedThumbs];\n    const {error} = await sb.from("games") .update({title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
     $("submitGameButton").disabled=false;
     if (error) return setGameFormMessage(error.message,true);
     $("gameUploader").classList.add("hidden");
