@@ -332,6 +332,8 @@ body.light-mode .game-detail-description-card{background:#fff}
 .community-card-actions{display:flex;gap:6px;padding:0 5px 5px}
 .community-card-actions button{font-size:10px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;background:rgba(255,255,255,.06);color:var(--muted)}
 .community-card-actions button:hover{color:var(--text);background:rgba(255,255,255,.12)}
+
+.profile-page-shell{max-width:1050px;margin:0 auto}.profile-banner{min-height:250px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#28213f,#111722) center/cover;position:relative;display:flex;align-items:end;padding:26px;margin-bottom:22px}.profile-banner:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.82))}.profile-banner-content{position:relative;display:flex;align-items:center;gap:18px;min-width:0}.profile-banner .avatar{width:86px;height:86px;flex:0 0 86px;border:3px solid rgba(255,255,255,.75);box-shadow:0 8px 28px rgba(0,0,0,.35)}.profile-banner h1{margin:0;color:#fff;font-size:clamp(28px,5vw,42px);overflow-wrap:anywhere}.profile-page-bio{color:var(--muted);font-size:15px;line-height:1.7;white-space:pre-wrap;margin:18px 0 26px}.profile-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.profile-theme-card{overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.profile-theme-image{height:130px;background:linear-gradient(135deg,#292f40,#171b25) center/cover}.profile-theme-body{padding:14px}.profile-theme-body h3{margin:0 0 6px}.profile-theme-body p{color:var(--muted);font-size:13px;margin:0}.profile-page-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 </style>
 <style id="deluxeSocialStyles">
 .social-layout{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.5fr);gap:18px;align-items:start}.social-panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;min-width:0}.social-panel h2,.social-panel h3{margin:0 0 12px}.social-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.social-row:last-child{border-bottom:0}.social-row .grow{flex:1;min-width:0}.social-row small,.social-muted{color:var(--muted);font-size:12px}.social-input,.social-select,.social-textarea{width:100%;padding:11px 12px;background:#0b0d11;border:1px solid var(--line);border-radius:9px;color:var(--text);margin:5px 0 10px}.social-textarea{min-height:75px;resize:vertical}.social-feed{display:grid;gap:9px;max-height:440px;overflow:auto;margin:12px 0}.social-post{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px}.social-post p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0 0;line-height:1.5}.social-channel-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.social-channel-tabs button.active{background:var(--accent);border-color:var(--accent)}.presence-pill{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:12px}.presence-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:#747b88}.presence-pill.online:before{background:#4ade80}.deluxe-toast{position:fixed;top:18px;right:18px;bottom:auto;z-index:2147483647;max-width:min(390px,calc(100vw - 36px));background:#171b24;border:1px solid var(--accent);box-shadow:0 18px 55px #0008;border-radius:14px;padding:15px 17px;pointer-events:auto}.deluxe-toast strong{display:block;margin-bottom:5px}.deluxe-toast p{margin:0;color:var(--muted);line-height:1.45;font-size:14px}.game-player-shell:fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#000!important;z-index:1}.game-player-shell:fullscreen .game-player-frame{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important}.game-player-shell:fullscreen .deluxe-toast{position:fixed;top:18px;right:18px;bottom:auto;z-index:2147483647}@media(max-width:760px){.social-layout{grid-template-columns:1fr}}
@@ -550,7 +552,7 @@ body{
       <article class="exclusive-theme-card"><div class="exclusive-theme-body"><h2>Daily reward · 10 Delubux</h2><p>Claim once every 24 hours.</p><button class="primary" id="claimDailyReward" onclick="claimDailyDelubux()">Claim 10 🪙</button><div id="dailyRewardMessage" class="theme-message"></div></div></article>
       <div class="section-heading"><h2>Account roles</h2></div><p class="settings-note">Bugtester is available for 30 Delubux. Publisher is not for sale and can only be gifted by an Admin. Publisher usernames are green; Bugtester usernames are blue.</p><div id="roleMarketplaceGrid" class="settings-grid"></div><div id="roleMarketplaceMessage" class="theme-message"></div>
       <div class="section-heading"><h2>Seasonal Bundles</h2></div><p class="settings-note">Limited seasonal collections with three games in every pack. Gifting seasonal bundles is 15% cheaper than buying one for yourself.</p><div id="seasonalMarketplaceGrid" class="seasonal-bundle-grid"><div class="loading">Loading seasonal bundles…</div></div>
-      <div class="section-heading"><h2>User-created themes</h2></div><p class="settings-note">Buy for 6 Delubux or gift an owned theme for 5 Delubux.</p><div id="themeMarketplaceGrid" class="settings-grid"></div>
+      
     </section>
     <section id="settingsPage" class="page">
       <div class="page-title">
@@ -653,7 +655,7 @@ body{
         <div class="theme-actions"><button id="saveAvatarButton" class="primary" type="button">Save Avatar</button><button id="clearAvatarButton" class="secondary" type="button">Remove Avatar</button></div>
         <div id="avatarCustomizerMessage" class="theme-message" role="status" aria-live="polite"></div>
       </div></article>
-      <div class="section-heading" style="margin-top:36px"><div><p class="eyebrow">ACCOUNT</p><h2>Sign-in status</h2></div></div>
+      <div class="section-heading" style="margin-top:36px"><div><p class="eyebrow">YOUR PROFILE</p><h2>Profile bio</h2></div></div><article class="exclusive-theme-card" style="margin-bottom:28px"><div class="exclusive-theme-body"><h3>About you</h3><p>Add a short bio that appears on your public Deluxe user page.</p><label for="profileBioInput" class="small-note">Your bio</label><textarea id="profileBioInput" maxlength="280" rows="4" placeholder="Tell people a little about yourself…" style="display:block;width:100%;box-sizing:border-box;margin-top:7px;padding:12px 13px;background:#0b0d11;border:1px solid var(--line);border-radius:9px;color:var(--text);resize:vertical"></textarea><div class="theme-actions"><button id="saveProfileBioButton" class="primary" type="button">Save Bio</button></div><div id="profileBioStatus" class="theme-message" role="status" aria-live="polite"></div></div></article><div class="section-heading" style="margin-top:36px"><div><p class="eyebrow">ACCOUNT</p><h2>Sign-in status</h2></div></div>
       <article class="exclusive-theme-card"><div class="exclusive-theme-body"><div id="settingsAccountStatus" class="theme-status">Checking account…</div><h3>Stay signed in</h3><p>Your Deluxe session is saved in this browser, so you should stay signed in when you return. Use this button whenever you want to sign out of this device.</p><div class="theme-actions"><button id="settingsSignOut" class="danger-button" type="button">Sign Out</button></div><div id="settingsSignOutMessage" class="theme-message" role="status" aria-live="polite"></div></div></article>
     </section>
 
@@ -800,6 +802,7 @@ function loadFromDeluxe(onLoaded) {
       <div class="page-title"><p class="eyebrow">COMMUNITY</p><h1>Users</h1><p>Registered users will appear here.</p></div>
       <div id="usersGrid" class="user-grid"><div class="loading">Loading users…</div></div>
     </section>
+    <section id="profilePage" class="page"><div class="profile-page-shell"><div class="profile-page-toolbar"><button class="secondary" type="button" onclick="backFromProfile()">← Back</button><span class="small-note">Deluxe member page</span></div><div id="profilePageContent"><div class="loading">Loading profile…</div></div></div></section>
 
 
     
@@ -1444,7 +1447,7 @@ function loadFromDeluxe(onLoaded) {
     if (page) page.classList.add("active");
     if (name === "users") loadUsers();
     if (name === "community") loadCommunity();
-    if (name === "settings") { renderExclusiveThemeSettings(); renderAvatarCustomizer(); }
+    if (name === "settings") { renderExclusiveThemeSettings(); renderAvatarCustomizer(); renderProfileBioSettings(); }
     if (name === "inbox" && !currentUser) openAuth("login");
     if (name === "games") loadGames();
     if (name === "discover") { if (!allPublishedGames.length) loadGames().then(() => renderDiscover()); else renderDiscover(); }
@@ -2120,13 +2123,10 @@ function loadFromDeluxe(onLoaded) {
   async function loadThemeMarketplace(){
     await loadSeasonalMarketplace();
     await loadRoleMarketplace();
-    const grid=$("themeMarketplaceGrid");if(!grid)return;if(!currentUser){grid.textContent="Sign in to browse themes.";return;}
-    const [{data:themes,error},{data:owned}]=await Promise.all([sb.from("game_theme_designs").select("game_id,theme_name,games(title)").order("updated_at",{ascending:false}),sb.from("user_created_theme_ownership").select("game_id").eq("user_id",currentUser.id)]);
-    if(error){grid.textContent=error.message;return;}const own=new Set((owned||[]).map(x=>x.game_id));grid.innerHTML="";
-    (themes||[]).forEach(t=>{const card=document.createElement("article");card.className="exclusive-theme-card";const body=document.createElement("div");body.className="exclusive-theme-body";const title=document.createElement("h3");title.textContent=t.theme_name;const desc=document.createElement("p");desc.textContent="For: "+(t.games?.title||"Game theme");const actions=document.createElement("div");actions.className="theme-actions";const buy=document.createElement("button");buy.className="primary";buy.textContent=own.has(t.game_id)?"Owned":"Buy · 6 🪙";buy.disabled=own.has(t.game_id);buy.onclick=()=>buyUserTheme(t.game_id);const gift=document.createElement("button");gift.className="secondary";gift.textContent="Gift · 5 🪙";gift.disabled=!own.has(t.game_id);gift.onclick=()=>giftUserTheme(t.game_id);actions.append(buy,gift);body.append(title,desc,actions);card.append(body);grid.append(card);});
-    if(!themes?.length)grid.textContent="No user-created themes yet.";
+    // Creator themes are displayed on their owner’s public profile instead of a global listing.
+
   }
-  async function buyUserTheme(gameId){const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:null});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();await loadThemeMarketplace();awardDailyTask("unlock_theme");alert("Theme purchased!");}
+  async function buyUserTheme(gameId){const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:null});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();awardDailyTask("unlock_theme");alert("Theme purchased!");if(activeViewedProfileId)await viewProfile(activeViewedProfileId);}
   async function giftUserTheme(gameId){const username=prompt("Enter the recipient's exact Deluxe username:");if(!username)return;const {data:user,error:e}=await sb.from("profiles").select("id,username").ilike("username",username).maybeSingle();if(e||!user)return alert("User not found.");if(user.id===currentUser.id)return alert("You already own this theme.");const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:user.id});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();await loadThemeMarketplace();alert("Theme gifted to "+user.username+"!");}
   async function adminGrantDelubux(){if(currentRole!=="admin")return;const id=$("adminDelubuxUser").value,amount=Number($("adminDelubuxAmount").value);if(!id||!Number.isInteger(amount)||amount<1||amount>100000)return alert("Choose a user and valid amount.");const {data,error}=await sb.rpc("delubux_admin_grant",{p_user_id:id,p_amount:amount});$("adminDelubuxStatus").textContent=error?error.message:"Granted "+amount+" Delubux. Balance: "+data.balance;}
   function updateAccountUI(){
@@ -2207,6 +2207,10 @@ function loadFromDeluxe(onLoaded) {
       return (url.protocol === "https:" || url.protocol === "http:") ? url.href : null;
     } catch { return null; }
   }
+
+  function renderProfileBioSettings(){const input=$("profileBioInput"),button=$("saveProfileBioButton"),status=$("profileBioStatus");if(input)input.value=currentProfile?.bio||"";if(button)button.disabled=!currentUser;if(status&&!currentUser)status.textContent="Sign in to edit your profile bio.";}
+  async function saveProfileBio(){const input=$("profileBioInput"),status=$("profileBioStatus"),button=$("saveProfileBioButton");if(!currentUser||!sb){if(status)status.textContent="Sign in to edit your bio.";return;}const bio=String(input?.value||"").trim();if(bio.length>280){if(status)status.textContent="Your bio must be 280 characters or fewer.";return;}if(button)button.disabled=true;if(status)status.textContent="Saving bio…";const {data,error}=await sb.from("profiles").update({bio}).eq("id",currentUser.id).select("*").single();if(button)button.disabled=false;if(error){if(status)status.textContent="Could not save bio: "+error.message;return;}currentProfile=data;if(status)status.textContent="Bio saved to your Deluxe profile.";if(activeViewedProfileId===currentUser.id)await viewProfile(currentUser.id);}
+  $("saveProfileBioButton")?.addEventListener("click",saveProfileBio);
 
   function renderAvatarCustomizer() {
     const input = $("avatarImageUrl");
@@ -2386,27 +2390,53 @@ function loadFromDeluxe(onLoaded) {
     if(window.refreshDeluxePresenceCards)window.refreshDeluxePresenceCards();
   }
 
+  let profileReturnPage = "users";
+  let activeViewedProfileId = null;
+  function backFromProfile(){showPage(profileReturnPage||"users");}
   async function viewProfile(id){
-    if (!sb) return;
-    const {data:p,error} = await sb.from("profiles")
-      .select("*").eq("id",id).maybeSingle();
-    if (error || !p) return;
-
-    const [{data:roleData},{data:profileRoleRows}]=await Promise.all([sb.from("user_roles").select("role").eq("user_id",id).maybeSingle(),sb.from("user_role_ownership").select("role").eq("user_id",id)]);const profileRoles=(profileRoleRows||[]).map(x=>x.role);const baseProfileRole=roleData?.role||"user";const profileRole=bestRoleFor(profileRoles,baseProfileRole);
-    $("profileContent").innerHTML = `
-      <div class="profile-head">
-        <div class="avatar">
-          ${p.avatar_url ? `<img src="${escapeHtml(p.avatar_url)}" alt="">` : escapeHtml(initials(p.username))}
-        </div>
-        <div>
-          <h2 class="${roleClass(profileRole)}">${escapeHtml(p.username || "User")} ${roleTicksMarkup(profileRoles,baseProfileRole)}</h2>
-          <div class="role ${roleClass(profileRole)}">${roleLabel(profileRole)}</div>
-        </div>
-      </div>
-      <p class="profile-bio">${escapeHtml(p.bio || "No bio yet.")}</p>
-      <div class="profile-meta">Member of Secret Unblocked Deluxe</div>
-    `;
-    openModal("profileModal");
+    if(!sb)return;
+    const activePage=document.querySelector(".page.active");
+    if(activePage&&activePage.id!=="profilePage")profileReturnPage=activePage.id.replace(/Page$/,"")||"users";
+    activeViewedProfileId=id;
+    const root=$("profilePageContent");
+    if(root)root.innerHTML='<div class="loading">Loading profile…</div>';
+    showPage("profile");
+    const results=await Promise.all([
+      sb.from("profiles").select("*").eq("id",id).maybeSingle(),
+      sb.from("user_roles").select("role").eq("user_id",id).maybeSingle(),
+      sb.from("user_role_ownership").select("role").eq("user_id",id),
+      sb.from("game_theme_designs").select("game_id,creator_id,theme_name,background_image_url,games(title)").eq("creator_id",id).order("updated_at",{ascending:false}),
+      currentUser?sb.from("user_created_theme_ownership").select("game_id").eq("user_id",currentUser.id):Promise.resolve({data:[]})
+    ]);
+    const p=results[0].data, error=results[0].error, roleData=results[1].data, profileRoleRows=results[2].data, themes=results[3].data, themeError=results[3].error, owned=results[4].data;
+    if(error||!p){if(root)root.innerHTML='<div class="empty-state"><h2>Profile unavailable</h2><p>This user profile could not be loaded.</p></div>';return;}
+    const profileRoles=(profileRoleRows||[]).map(x=>x.role),baseProfileRole=roleData?.role||"user",profileRole=bestRoleFor(profileRoles,baseProfileRole);
+    const themeRows=themes||[],ownedIds=new Set((owned||[]).map(x=>x.game_id)),isOwn=!!currentUser&&currentUser.id===id;
+    const banner=themeRows.find(t=>t.background_image_url)?.background_image_url||"";
+    root.innerHTML='<section class="profile-banner"><div class="profile-banner-content"><div class="avatar" id="memberProfileAvatar"></div><div><h1 id="memberProfileName"></h1><div id="memberProfileRole" class="role"></div></div></div></section><p id="memberProfileBio" class="profile-page-bio"></p><div class="profile-meta">Member of Secret Unblocked Deluxe</div><div class="section-heading"><div><p class="eyebrow">CREATED BY THIS MEMBER</p><h2>Themes</h2></div></div><div id="memberProfileThemes" class="profile-theme-grid"></div>';
+    const bannerEl=root.querySelector(".profile-banner");
+    if(banner&&validGameUrl(banner))bannerEl.style.backgroundImage='linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.8)),url("'+banner.replace(/["\\)]/g,"")+'")';
+    const avatar=root.querySelector("#memberProfileAvatar");
+    avatar.innerHTML=p.avatar_url?'<img src="'+escapeHtml(p.avatar_url)+'" alt="">':escapeHtml(initials(p.username));
+    root.querySelector("#memberProfileName").innerHTML=escapeHtml(p.username||"User")+" "+roleTicksMarkup(profileRoles,baseProfileRole);
+    root.querySelector("#memberProfileRole").textContent=roleLabel(profileRole);
+    root.querySelector("#memberProfileBio").textContent=p.bio||"No bio yet.";
+    const grid=root.querySelector("#memberProfileThemes");
+    themeRows.forEach(t=>{
+      const card=document.createElement("article");card.className="profile-theme-card";
+      const image=document.createElement("div");image.className="profile-theme-image";
+      if(validGameUrl(t.background_image_url))image.style.backgroundImage='url("'+t.background_image_url.replace(/["\\)]/g,"")+'")';
+      const body=document.createElement("div");body.className="profile-theme-body";
+      const title=document.createElement("h3");title.textContent=t.theme_name||"Untitled theme";
+      const desc=document.createElement("p");desc.textContent="For "+(t.games?.title||"Deluxe game");
+      const actions=document.createElement("div");actions.className="theme-actions";
+      if(isOwn){const ownLabel=document.createElement("span");ownLabel.className="theme-status";ownLabel.textContent="Created by you";actions.append(ownLabel);}
+      else if(ownedIds.has(t.game_id)){const ownLabel=document.createElement("span");ownLabel.className="theme-status unlocked";ownLabel.textContent="✓ Owned";actions.append(ownLabel);const gift=document.createElement("button");gift.className="secondary";gift.type="button";gift.textContent="Gift · 5 🪙";gift.addEventListener("click",()=>giftUserTheme(t.game_id));actions.append(gift);}
+      else {const buy=document.createElement("button");buy.className="primary";buy.type="button";buy.textContent="Buy · 6 🪙";buy.addEventListener("click",()=>buyUserTheme(t.game_id));actions.append(buy);}
+      body.append(title,desc,actions);card.append(image,body);grid.append(card);
+    });
+    if(!themeRows.length)grid.innerHTML='<div class="empty-state"><span>🎨</span><h2>No themes yet</h2><p>Themes created by this member will appear here.</p></div>';
+    if(themeError)console.warn("Could not load member themes:",themeError.message);
   }
 
   let allPublishedGames = [];
