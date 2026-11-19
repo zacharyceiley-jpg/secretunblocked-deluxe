@@ -1547,11 +1547,13 @@ function loadFromDeluxe(onLoaded) {
     }
     button.disabled = true;
     status.textContent = "Creating badge…";
+    let hostedBadgeImage;
+    try { hostedBadgeImage=await hostDeluxeImage(imageUrl,"deluxe-badge"); } catch(e) { button.disabled=false; status.textContent="Image upload failed: "+e.message; return; }
     const {error} = await sb.from("deluxe_badges").insert({
       game_id: gameId,
       creator_id: currentUser.id,
       name: name,
-      image_url: imageUrl,
+      image_url: hostedBadgeImage,
       description: description,
       requirement_seconds: 0,
       condition_type: "text_on_screen",
