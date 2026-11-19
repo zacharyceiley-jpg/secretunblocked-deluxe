@@ -2090,6 +2090,7 @@ function loadFromDeluxe(onLoaded) {
         row["game_"+n+"_"+suffix]=value||null;
       }
     }
+    try { for(let n=1;n<=3;n++) for(const suffix of ["thumbnail","icon","purchase_render"]) { const key="game_"+n+"_"+suffix; row[key]=await hostDeluxeImage(row[key],"seasonal-"+key); } } catch(e) { return setSeasonalAdminStatus("Image upload failed: "+e.message,true); }
     const button=$("seasonalBundleForm")?.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="Publishing…";}
     const {error}=await sb.from("seasonal_bundles").insert(row);
     if(button){button.disabled=false;button.textContent="＋ Publish Seasonal Bundle";}
