@@ -990,6 +990,16 @@ function loadFromDeluxe(onLoaded) {
           <div id="adminDelubuxStatus" class="auth-message"></div>
         </div></div>
 
+        <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">THEMES</p><h2>Gift a user-created theme</h2></div></div>
+        <div class="game-uploader"><div class="game-form">
+          <p class="small-note">Choose any published creator theme and grant it to a user for free. The recipient will keep the theme unlocked in their collection.</p>
+          <label for="adminCreatedThemeGiftSearch">Find a user<input id="adminCreatedThemeGiftSearch" type="search" placeholder="Search usernames…" oninput="renderAdminCreatedThemeGiftUsers()"></label>
+          <label for="adminCreatedThemeGiftUser">Recipient<select id="adminCreatedThemeGiftUser"><option value="">Loading users…</option></select></label>
+          <label for="adminCreatedThemeGiftTheme">Creator theme<select id="adminCreatedThemeGiftTheme"><option value="">Loading themes…</option></select></label>
+          <button class="primary" id="adminGiftCreatedThemeButton" type="button" onclick="giftAdminCreatedTheme()">Gift Creator Theme</button>
+          <div id="adminCreatedThemeGiftStatus" class="auth-message" role="status" aria-live="polite"></div>
+        </div></div>
+
         <div class="section-heading" style="margin-top:30px">
           <div><p class="eyebrow">REWARDS</p><h2>Gift an exclusive theme</h2></div>
         </div>
@@ -1014,16 +1024,6 @@ function loadFromDeluxe(onLoaded) {
             <div id="adminThemeGiftStatus" class="auth-message" role="status" aria-live="polite"></div>
           </div>
         </div>
-
-        <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">CREATOR REWARDS</p><h2>Gift a user-created theme</h2></div></div>
-        <div class="game-uploader"><div class="game-form">
-          <p class="small-note">Choose any published creator theme and grant it to a user for free. The recipient will keep the theme unlocked in their collection.</p>
-          <label for="adminCreatedThemeGiftSearch">Find a user<input id="adminCreatedThemeGiftSearch" type="search" placeholder="Search usernames…" oninput="renderAdminCreatedThemeGiftUsers()"></label>
-          <label for="adminCreatedThemeGiftUser">Recipient<select id="adminCreatedThemeGiftUser"><option value="">Loading users…</option></select></label>
-          <label for="adminCreatedThemeGiftTheme">Creator theme<select id="adminCreatedThemeGiftTheme"><option value="">Loading themes…</option></select></label>
-          <button class="primary" id="adminGiftCreatedThemeButton" type="button" onclick="giftAdminCreatedTheme()">Gift Creator Theme</button>
-          <div id="adminCreatedThemeGiftStatus" class="auth-message" role="status" aria-live="polite"></div>
-        </div></div>
 
         <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">COMMUNITY SAFETY</p><h2>User reports</h2></div></div>
         <div id="adminUserReports" class="admin-report-list"><div class="loading">Loading reports…</div></div>
