@@ -299,7 +299,7 @@ body:has(.deluxe-sidebar:hover) .deluxe-sidebar,body:has(.deluxe-sidebar:focus-w
 .game-chat-overlay .game-chat-head{margin-bottom:8px}.game-chat-overlay .game-chat-input{margin-top:8px}
 .game-player-shell .game-chat-panel{display:none}
 #inboxPage .inbox-message{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start}
-.inbox-delete{border:1px solid #71343d;background:#351a20;color:#ffb4bc;border-radius:9px;padding:7px 10px}
+.inbox-delete{border:1px solid #71343d;background:#351a20;color:#ffb4bc;border-radius:9px;padding:7px 10px}.inbox-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #marketplacePage .page-title h1{font-size:clamp(30px,4vw,42px)}
 #marketplacePage .exclusive-theme-card,#marketplacePage .seasonal-bundle-card{border-radius:17px;box-shadow:0 12px 32px #0002}
 #marketplacePage .section-heading h2{font-size:24px}
@@ -848,7 +848,7 @@ function loadFromDeluxe(onLoaded) {
       </div>
       <div class="inbox-toolbar">
         <div id="inboxStatus" class="small-note">Sign in to view your messages.</div>
-        <button class="secondary" id="inboxRefresh">Refresh</button>
+        <div class="inbox-toolbar-actions"><button class="secondary" id="inboxMarkAllRead" type="button">Mark all as read</button><button class="secondary" id="inboxRefresh" type="button">Refresh</button></div>
       </div>
       <div id="inboxList" class="inbox-list">
         <div class="empty-state"><span>📩</span><h2>Your inbox</h2><p>Sign in to view admin messages.</p></div>
@@ -1830,6 +1830,24 @@ function loadFromDeluxe(onLoaded) {
     if (notificationError) console.error("Unread notification check:", notificationError);
     unreadMessageCount = (messageCount || 0) + (notificationError ? 0 : (notificationCount || 0));
     updateUnreadBadgeUI();
+  }
+
+  async function markAllInboxRead(){
+    if(!sb||!currentUser)return;
+    const button=$("inboxMarkAllRead");
+    if(button){button.disabled=true;button.textContent="Marking…";}
+    const now=new Date().toISOString();
+    const [messagesResult,notificationsResult]=await Promise.all([
+      sb.from("messages").update({read_at:now}).eq("recipient_id",currentUser.id).is("game_id",null).is("read_at",null),
+      sb.from("deluxe_notifications").update({read_at:now}).eq("user_id",currentUser.id).is("read_at",null)
+    ]);
+    if(messagesResult.error||notificationsResult.error){
+      const error=messagesResult.error||notificationsResult.error;
+      toast("Could not mark everything as read",error.message);
+    }else{
+      toast("Inbox cleared","All messages and notifications are now marked as read.");
+    }
+    await loadInbox();
   }
 
   async function loadInbox(){
@@ -4157,6 +4175,7 @@ flushDeluxePlayTracking();
   });
   $("adminRefresh").onclick = loadAdminPanel;
   $("inboxRefresh").onclick = loadInbox;
+  $("inboxMarkAllRead").onclick = markAllInboxRead;
   $("adminModerationSearch").oninput = renderAdminModerationUsers;
   $("adminSendMessage").onclick = sendAdminMessage;
   $("adminUserSearch").oninput = renderAdminUserPicker;
