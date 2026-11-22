@@ -333,7 +333,7 @@ body.light-mode .game-detail-description-card{background:#fff}
 .community-card-actions button{font-size:10px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;background:rgba(255,255,255,.06);color:var(--muted)}
 .community-card-actions button:hover{color:var(--text);background:rgba(255,255,255,.12)}
 
-.profile-page-shell{max-width:1050px;margin:0 auto}.profile-banner{min-height:250px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#28213f,#111722) center/cover;position:relative;display:flex;align-items:end;padding:26px;margin-bottom:22px}.profile-banner:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.82))}.profile-banner-content{position:relative;display:flex;align-items:center;gap:18px;min-width:0}.profile-banner .avatar{width:86px;height:86px;flex:0 0 86px;border:3px solid rgba(255,255,255,.75);box-shadow:0 8px 28px rgba(0,0,0,.35)}.profile-banner h1{margin:0;color:#fff;font-size:clamp(28px,5vw,42px);overflow-wrap:anywhere}.profile-page-bio{color:var(--muted);font-size:15px;line-height:1.7;white-space:pre-wrap;margin:18px 0 26px}.profile-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.profile-theme-card{overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.profile-theme-image{height:130px;background:linear-gradient(135deg,#292f40,#171b25) center/cover}.profile-theme-body{padding:14px}.profile-theme-body h3{margin:0 0 6px}.profile-theme-body p{color:var(--muted);font-size:13px;margin:0}.profile-page-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.profile-theme-editor{margin:10px 0 20px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.profile-theme-editor[hidden]{display:none}.profile-theme-editor label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}.profile-theme-editor select{width:100%;max-width:560px;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text)}.profile-theme-editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.profile-banner{color:var(--profile-theme-text,#fff)}.profile-page-shell{max-width:1050px;margin:0 auto}.profile-banner{min-height:250px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#28213f,#111722) center/cover;position:relative;display:flex;align-items:end;padding:26px;margin-bottom:22px}.profile-banner:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.82))}.profile-banner-content{position:relative;display:flex;align-items:center;gap:18px;min-width:0}.profile-banner .avatar{width:86px;height:86px;flex:0 0 86px;border:3px solid rgba(255,255,255,.75);box-shadow:0 8px 28px rgba(0,0,0,.35)}.profile-banner h1{margin:0;color:#fff;font-size:clamp(28px,5vw,42px);overflow-wrap:anywhere}.profile-page-bio{color:var(--muted);font-size:15px;line-height:1.7;white-space:pre-wrap;margin:18px 0 26px}.profile-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.profile-theme-card{overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.profile-theme-image{height:130px;background:linear-gradient(135deg,#292f40,#171b25) center/cover}.profile-theme-body{padding:14px}.profile-theme-body h3{margin:0 0 6px}.profile-theme-body p{color:var(--muted);font-size:13px;margin:0}.profile-page-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 
 .profile-page-actions{display:flex;justify-content:flex-end;margin:12px 0 4px}.admin-report-list{display:grid;gap:12px}.admin-report-card,.admin-report-empty{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.admin-report-card p{line-height:1.5;margin:9px 0}.admin-report-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.admin-report-top>div{display:flex;align-items:center;gap:9px}.admin-report-top small{color:var(--muted)}.admin-report-details{white-space:pre-wrap;color:var(--muted);padding:10px 12px;background:var(--panel2);border-radius:9px}.admin-report-empty{color:var(--muted);text-align:center;padding:24px}
 
@@ -2480,23 +2480,43 @@ function loadFromDeluxe(onLoaded) {
       sb.from("profiles").select("*").eq("id",id).maybeSingle(),
       sb.from("user_roles").select("role").eq("user_id",id).maybeSingle(),
       sb.from("user_role_ownership").select("role").eq("user_id",id),
-      sb.from("game_theme_designs").select("game_id,creator_id,theme_name,background_image_url,games(title)").eq("creator_id",id).order("updated_at",{ascending:false}),
+      sb.from("game_theme_designs").select("game_id,creator_id,theme_name,background_image_url,background_color,text_color,accent_color,games(title)").order("updated_at",{ascending:false}),
       currentUser?sb.from("user_created_theme_ownership").select("game_id").eq("user_id",currentUser.id):Promise.resolve({data:[]})
     ]);
     const p=results[0].data, error=results[0].error, roleData=results[1].data, profileRoleRows=results[2].data, themes=results[3].data, themeError=results[3].error, owned=results[4].data;
     if(error||!p){if(root)root.innerHTML='<div class="empty-state"><h2>Profile unavailable</h2><p>This user profile could not be loaded.</p></div>';return;}
     const profileRoles=(profileRoleRows||[]).map(x=>x.role),baseProfileRole=roleData?.role||"user",profileRole=bestRoleFor(profileRoles,baseProfileRole);
-    const themeRows=themes||[],ownedIds=new Set((owned||[]).map(x=>x.game_id)),isOwn=!!currentUser&&currentUser.id===id;
-    const banner=themeRows.find(t=>t.background_image_url)?.background_image_url||"";
+    const allThemeRows=themes||[],themeRows=allThemeRows.filter(t=>t.creator_id===id),ownedIds=new Set((owned||[]).map(x=>x.game_id)),isOwn=!!currentUser&&currentUser.id===id;
+    const selectedProfileTheme=allThemeRows.find(t=>t.game_id===p.profile_theme_game_id)||null;
+    const bannerTheme=selectedProfileTheme||themeRows.find(t=>t.background_image_url)||null;
+    const banner=bannerTheme?.background_image_url||"";
     root.innerHTML='<section class="profile-banner"><div class="profile-banner-content"><div class="avatar" id="memberProfileAvatar"></div><div><h1 id="memberProfileName"></h1><div id="memberProfileRole" class="role"></div></div></div></section><div class="profile-page-actions" id="memberProfileActions"></div><p id="memberProfileBio" class="profile-page-bio"></p><div class="profile-meta">Member of Secret Unblocked Deluxe</div><div class="section-heading"><div><p class="eyebrow">CREATED BY THIS MEMBER</p><h2>Themes</h2></div></div><div id="memberProfileThemes" class="profile-theme-grid"></div>';
     const bannerEl=root.querySelector(".profile-banner");
-    if(banner&&validGameUrl(banner))bannerEl.style.backgroundImage='linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.8)),url("'+banner.replace(/["\\)]/g,"")+'")';
+    if(banner&&validGameUrl(banner))bannerEl.style.backgroundImage='linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.8)),url("'+banner.replace(/["\\\\)]/g,"") + '")';
+    if(bannerTheme?.background_color)bannerEl.style.backgroundColor=bannerTheme.background_color;
+    if(bannerTheme?.text_color)bannerEl.style.setProperty("--profile-theme-text",bannerTheme.text_color);
     const avatar=root.querySelector("#memberProfileAvatar");
     avatar.innerHTML=p.avatar_url?'<img src="'+escapeHtml(p.avatar_url)+'" alt="">':escapeHtml(initials(p.username));
     root.querySelector("#memberProfileName").innerHTML=escapeHtml(p.username||"User")+" "+roleTicksMarkup(profileRoles,baseProfileRole);
     root.querySelector("#memberProfileRole").textContent=roleLabel(profileRole);
     const profileActions=root.querySelector("#memberProfileActions");
-    if(profileActions && currentUser && currentUser.id!==id){const reportButton=document.createElement("button");reportButton.type="button";reportButton.className="danger-button";reportButton.textContent="⚑ Report user";reportButton.addEventListener("click",()=>reportUserProfile(id,p.username||"this user"));profileActions.append(reportButton);}
+    if(profileActions && isOwn){
+      const editButton=document.createElement("button");editButton.type="button";editButton.className="secondary";editButton.textContent="Edit";
+      const editor=document.createElement("section");editor.className="profile-theme-editor";editor.hidden=true;
+      const label=document.createElement("label");label.textContent="Choose any theme on Deluxe to display on your profile";
+      const select=document.createElement("select");select.setAttribute("aria-label","Profile display theme");
+      const none=document.createElement("option");none.value="";none.textContent="No profile theme";select.append(none);
+      allThemeRows.forEach(t=>{const option=document.createElement("option");option.value=t.game_id;option.textContent=(t.theme_name||"Untitled theme")+" · "+(t.games?.title||"Deluxe game")+" · curator "+String(t.creator_id||"").slice(0,8);select.append(option);});
+      select.value=p.profile_theme_game_id||"";
+      const controls=document.createElement("div");controls.className="profile-theme-editor-actions";
+      const save=document.createElement("button");save.type="button";save.className="primary";save.textContent="Save profile theme";
+      const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Cancel";
+      save.addEventListener("click",async()=>{save.disabled=true;save.textContent="Saving…";const {data,error}=await sb.from("profiles").update({profile_theme_game_id:select.value||null}).eq("id",id).select("*").single();if(error){toast("Theme not saved",error.message);save.disabled=false;save.textContent="Save profile theme";return;}if(currentUser?.id===id)currentProfile={...(currentProfile||{}),...data};toast("Profile theme updated","Your selected Deluxe theme is now displayed on your profile.");await viewProfile(id);});
+      cancel.addEventListener("click",()=>{editor.hidden=true;});
+      controls.append(save,cancel);editor.append(label,select,controls);
+      editButton.addEventListener("click",()=>{editor.hidden=!editor.hidden;});
+      profileActions.append(editButton);profileActions.after(editor);
+    } else if(profileActions && currentUser && currentUser.id!==id){const reportButton=document.createElement("button");reportButton.type="button";reportButton.className="danger-button";reportButton.textContent="⚑ Report user";reportButton.addEventListener("click",()=>reportUserProfile(id,p.username||"this user"));profileActions.append(reportButton);}
     root.querySelector("#memberProfileBio").textContent=p.bio||"No bio yet.";
     const grid=root.querySelector("#memberProfileThemes");
     themeRows.forEach(t=>{
