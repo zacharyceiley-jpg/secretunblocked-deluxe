@@ -2508,7 +2508,7 @@ function loadFromDeluxe(onLoaded) {
       const select=document.createElement("select");select.setAttribute("aria-label","Profile display theme");
       const none=document.createElement("option");none.value="";none.textContent="No profile theme";select.append(none);
       allThemeRows.forEach(t=>{const option=document.createElement("option");option.value=t.game_id;option.textContent=(t.theme_name||"Untitled theme")+" · "+(t.games?.title||"Deluxe game")+" · curator "+String(t.creator_id||"").slice(0,8);select.append(option);});
-      select.value=p.profile_theme_game_id||"";
+      select.value=p.profile_theme_game_id||bannerTheme?.game_id||"";
       const controls=document.createElement("div");controls.className="profile-theme-editor-actions";
       const save=document.createElement("button");save.type="button";save.className="primary";save.textContent="Save profile theme";
       const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Cancel";
