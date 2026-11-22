@@ -471,6 +471,34 @@ body{
 .community-word-filter-row strong{overflow-wrap:anywhere}
 .community-word-filter-remove{flex:0 0 auto}
 </style>
+
+<style id="deluxe-admin-v2">
+#adminDashboard{display:grid;grid-template-columns:224px minmax(0,1fr);gap:22px;align-items:start;margin-top:22px}
+#adminDashboard .admin-v2-nav{position:sticky;top:22px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.095),rgba(255,255,255,.035));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 18px 50px rgba(0,0,0,.2)}
+.admin-v2-brand{display:flex;align-items:center;gap:10px;padding:10px 10px 16px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.admin-v2-brand-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:rgba(255,255,255,.12);font-size:19px}
+.admin-v2-brand strong{display:block;font-size:14px;letter-spacing:.02em}.admin-v2-brand small{color:var(--muted);font-size:11px}
+.admin-v2-nav-label{padding:12px 10px 7px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.admin-v2-tab{width:100%;display:flex;align-items:center;gap:11px;padding:11px 12px;margin:3px 0;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--muted);font:inherit;font-size:13px;text-align:left;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s}
+.admin-v2-tab:hover{background:rgba(255,255,255,.07);color:var(--text);transform:translateX(2px)}
+.admin-v2-tab[aria-selected="true"]{color:var(--text);background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.admin-v2-tab-icon{width:20px;text-align:center;font-size:16px;opacity:.9}
+.admin-v2-main{min-width:0}
+.admin-v2-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:2px 0 20px}
+.admin-v2-heading h2{font-size:clamp(22px,3vw,30px);margin:3px 0 5px;letter-spacing:-.035em}
+.admin-v2-heading p{margin:0;color:var(--muted);font-size:13px}
+.admin-v2-panel{display:none;animation:adminV2In .22s ease both}.admin-v2-panel.active{display:block}
+@keyframes adminV2In{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+#adminDashboard .feature,#adminDashboard .game-uploader,#adminDashboard .admin-tools,#adminDashboard #adminMessages{border-radius:18px}
+#adminDashboard .feature-grid{gap:12px}
+#adminDashboard .feature{border:1px solid rgba(255,255,255,.1);background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));backdrop-filter:blur(16px)}
+#adminDashboard .section-heading{margin-top:8px!important;padding-top:8px}
+#adminDashboard .section-heading h2{letter-spacing:-.025em}
+#adminDashboard .admin-tools,#adminDashboard .game-uploader{border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.035);backdrop-filter:blur(18px)}
+.admin-v2-empty{padding:26px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center}
+@media(max-width:850px){#adminDashboard{grid-template-columns:1fr;gap:14px}.admin-v2-nav{position:static!important;display:flex;align-items:center;gap:5px;overflow-x:auto;white-space:nowrap}.admin-v2-brand,.admin-v2-nav-label{display:none}.admin-v2-tab{width:auto;flex:0 0 auto;padding:10px 12px}.admin-v2-tab:hover{transform:none}}
+@media(max-width:560px){#adminDashboard{margin-top:14px}.admin-v2-heading{display:block}.admin-v2-tab{font-size:12px}.admin-v2-tab-icon{width:auto}}
+</style>
 </head>
 <body>
   <header class="topbar deluxe-topbar">
@@ -3603,6 +3631,7 @@ flushDeluxePlayTracking();
 
     access.classList.add("hidden");
     dashboard.classList.remove("hidden");
+    if (window.initDeluxeAdminV2) window.initDeluxeAdminV2();
     await loadAdminUserTools();
     await loadAdminSeasonalBundles();
     await loadCommunityWordFilter();
@@ -4696,5 +4725,66 @@ window.openGameDetails=function(id){
 </script>
 
 
+
+<script id="deluxe-admin-v2-script">
+(function(){
+  const config=[
+    {id:"overview",label:"Overview",icon:"⌂",desc:"Your Deluxe platform at a glance."},
+    {id:"users",label:"Users",icon:"♙",desc:"Accounts, roles, user messages and recent activity."},
+    {id:"games",label:"Games",icon:"▣",desc:"Review the game catalogue and manage seasonal releases."},
+    {id:"community",label:"Community",icon:"▤",desc:"Community safety tools and recent conversations."},
+    {id:"moderation",label:"Moderation",icon:"⬡",desc:"Review account restrictions and moderation actions."},
+    {id:"currency",label:"Delubux",icon:"◈",desc:"Manage balances and platform currency."},
+    {id:"themes",label:"Themes",icon:"◐",desc:"Gift and manage exclusive theme rewards."},
+    {id:"storage",label:"Image Storage",icon:"▧",desc:"Manage Deluxe image hosting and migration."}
+  ];
+  function categoryFor(title){
+    const t=title.toLowerCase();
+    if(t.includes("word filter")||t.includes("recent messages"))return "community";
+    if(t.includes("suspensions")||t.includes("bans"))return "moderation";
+    if(t.includes("recent games")||t.includes("seasonal bundle"))return "games";
+    if(t.includes("delubux"))return "currency";
+    if(t.includes("exclusive theme"))return "themes";
+    return "users";
+  }
+  window.initDeluxeAdminV2=function(){
+    const dashboard=document.getElementById("adminDashboard");
+    if(!dashboard||dashboard.dataset.adminV2Ready==="1")return;
+    dashboard.dataset.adminV2Ready="1";
+    const original=[...dashboard.children];
+    const shell=document.createElement("div");shell.className="admin-v2-nav";shell.setAttribute("aria-label","Admin navigation");
+    shell.innerHTML='<div class="admin-v2-brand"><span class="admin-v2-brand-mark">⬡</span><span><strong>DELUXE ADMIN</strong><small>CONTROL CENTRE · 2.0</small></span></div><div class="admin-v2-nav-label">Workspace</div>';
+    const main=document.createElement("div");main.className="admin-v2-main";
+    const panels={};
+    config.forEach((item,index)=>{
+      const panel=document.createElement("section");panel.className="admin-v2-panel"+(index===0?" active":"");panel.dataset.adminPanel=item.id;
+      panel.innerHTML='<div class="admin-v2-heading"><div><p class="eyebrow">ADMINISTRATION / '+item.label.toUpperCase()+'</p><h2>'+item.label+'</h2><p>'+item.desc+'</p></div></div>';
+      panels[item.id]=panel;main.appendChild(panel);
+      const button=document.createElement("button");button.type="button";button.className="admin-v2-tab";button.dataset.adminTab=item.id;button.setAttribute("aria-selected",index===0?"true":"false");
+      button.innerHTML='<span class="admin-v2-tab-icon">'+item.icon+'</span><span>'+item.label+'</span>';
+      button.addEventListener("click",()=>select(item.id));shell.appendChild(button);
+    });
+    function select(id){
+      Object.entries(panels).forEach(([key,panel])=>panel.classList.toggle("active",key===id));
+      shell.querySelectorAll("[data-admin-tab]").forEach(btn=>btn.setAttribute("aria-selected",btn.dataset.adminTab===id?"true":"false"));
+    }
+    const nodes=original.filter(node=>node.nodeType===1);
+    let active="overview";
+    nodes.forEach(node=>{
+      if(node.classList.contains("section-heading")){
+        const heading=node.querySelector("h2")?.textContent||"";
+        active=categoryFor(heading);
+      } else if(active==="overview" && node.matches(".feature") && /image storage/i.test(node.textContent)){
+        active="storage";
+      }
+      panels[active].appendChild(node);
+    });
+    dashboard.replaceChildren(shell,main);
+    dashboard.querySelectorAll(".admin-v2-panel").forEach(panel=>{
+      if(!panel.children.length)panel.innerHTML+='<div class="admin-v2-empty">No tools are available in this section yet.</div>';
+    });
+  };
+})();
+</script>
 </body>
 </html>
