@@ -925,7 +925,7 @@ function loadFromDeluxe(onLoaded) {
 <div id="adminUserInfoResults" class="admin-user-info-results"><div class="admin-report-empty">Search for a user to view their account information.</div></div>
 
         <div class="section-heading" style="margin-top:30px">
-          <div><p class="eyebrow">GAMES</p><h2>Recent games</h2></div>
+          <div><p class="eyebrow">GAMES</p><h2>All games</h2></div>
         </div>
         <div class="game-uploader" style="margin-bottom:14px"><label for="adminGameSearch">Search every game<input id="adminGameSearch" type="search" placeholder="Search game titles, creators or descriptions…"></label><p class="small-note" id="adminGameCountNote">Loading the complete game catalogue…</p></div><div id="adminGames" class="user-grid"><div class="loading">Loading…</div></div>
 
@@ -1145,6 +1145,9 @@ function loadFromDeluxe(onLoaded) {
   let adminMessagePresetApplied = false;
 
   const $ = id => document.getElementById(id);
+  // Keep the game editor modal outside page sections so Admin Panel can open it without leaving the panel.
+  const sharedGameEditorModal = $("gameUploader");
+  if (sharedGameEditorModal && sharedGameEditorModal.parentElement !== document.body) document.body.appendChild(sharedGameEditorModal);
 
   function setAuthMessage(message, error=false){
     const el = $("authMessage");
@@ -1296,6 +1299,8 @@ function loadFromDeluxe(onLoaded) {
     const payload = {game_id:gameId, creator_id:currentUser.id, theme_name:themeName, background_color:$("gameThemeBackground").value, text_color:$("gameThemeText").value, accent_color:$("gameThemeAccent").value, background_image_url:hostedBackground || null, updated_at:new Date().toISOString()};
     const {error} = await sb.from("game_theme_designs").upsert(payload, {onConflict:"game_id"});
     if (error) return setGameThemeDesignerMessage(error.message, true);
+    const {error:ownershipError} = await sb.from("user_created_theme_ownership").upsert({user_id:currentUser.id,game_id:gameId,acquired_via:"creator"},{onConflict:"user_id,game_id",ignoreDuplicates:true});
+    if (ownershipError) return setGameThemeDesignerMessage("Theme saved, but creator ownership could not be recorded: "+ownershipError.message,true);
     if(previousTheme?.background_image_url!==hostedBackground) await cleanupReplacedDeluxeImages([previousTheme?.background_image_url],[hostedBackground]);
     setGameThemeDesignerMessage("Theme saved! Everyone must play this game for 60 new seconds to unlock it.");
     await loadGameThemeDesigner();
@@ -2162,7 +2167,29 @@ function loadFromDeluxe(onLoaded) {
     // Creator themes are displayed on their owner’s public profile instead of a global listing.
 
   }
-  async function buyUserTheme(gameId){const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:null});if(error)return alert(error.message);delubuxBalance=Number(data.balance);updateDelubuxBalance();awardDailyTask("unlock_theme");alert("Theme purchased!");if(activeViewedProfileId)await viewProfile(activeViewedProfileId);}
+  const themePurchaseInFlight = new Set();
+  async function buyUserTheme(gameId,button){
+    if(!currentUser){openAuth("login");return;}
+    if(!sb)return alert("The marketplace is unavailable. Please try again later.");
+    if(themePurchaseInFlight.has(gameId))return;
+    themePurchaseInFlight.add(gameId);
+    const oldLabel=button?.textContent;
+    if(button){button.disabled=true;button.textContent="Purchasing…";}
+    try{
+      const {data,error}=await sb.rpc("delubux_buy_theme",{p_game_id:gameId,p_recipient_id:null});
+      if(error)throw error;
+      if(!data?.ok)throw new Error(data?.error||"The purchase could not be completed.");
+      delubuxBalance=Number(data.balance);
+      updateDelubuxBalance();
+      awardDailyTask("unlock_theme");
+      if(activeViewedProfileId)await viewProfile(activeViewedProfileId);
+      if(typeof toast==="function")toast("Theme purchased","The theme is now in your collection.");
+      else alert("Theme purchased!");
+    }catch(error){
+      alert("Theme purchase failed: "+(error?.message||"Please try again."));
+      if(button){button.disabled=false;button.textContent=oldLabel||"Buy · 6 🪙";}
+    }finally{themePurchaseInFlight.delete(gameId);}
+  }
   async function giftUserTheme(gameId){
     const username=prompt("Enter the recipient's exact Deluxe username:");
     if(!username)return;
@@ -2482,7 +2509,7 @@ function loadFromDeluxe(onLoaded) {
       const actions=document.createElement("div");actions.className="theme-actions";
       if(isOwn){const ownLabel=document.createElement("span");ownLabel.className="theme-status";ownLabel.textContent="Created by you";actions.append(ownLabel);}
       else if(ownedIds.has(t.game_id)){const ownLabel=document.createElement("span");ownLabel.className="theme-status unlocked";ownLabel.textContent="✓ Owned";actions.append(ownLabel);const gift=document.createElement("button");gift.className="secondary";gift.type="button";gift.textContent="Gift · 5 🪙";gift.addEventListener("click",()=>giftUserTheme(t.game_id));actions.append(gift);}
-      else {const buy=document.createElement("button");buy.className="primary";buy.type="button";buy.textContent="Buy · 6 🪙";buy.addEventListener("click",()=>buyUserTheme(t.game_id));actions.append(buy);}
+      else {const buy=document.createElement("button");buy.className="primary";buy.type="button";buy.textContent="Buy · 6 🪙";buy.addEventListener("click",()=>buyUserTheme(t.game_id,buy));actions.append(buy);}
       body.append(title,desc,actions);card.append(image,body);grid.append(card);
     });
     if(!themeRows.length)grid.innerHTML='<div class="empty-state"><span>🎨</span><h2>No themes yet</h2><p>Themes created by this member will appear here.</p></div>';
@@ -3039,7 +3066,7 @@ function loadFromDeluxe(onLoaded) {
     for(let i=1;i<=2;i++) $("gamePromoVideo"+i).value = existingPromoVideos[i-1] ? youtubeVideoUrl(existingPromoVideos[i-1]) : "";
     $("gameChatEnabled").checked = game.chat_enabled !== false;
     $("gameFormMessage").textContent = "";
-    $("gameUploader").classList.remove("hidden");
+    openModal("gameUploader");
     $("gameTitle").focus();
   }
 
@@ -3139,7 +3166,7 @@ function loadFromDeluxe(onLoaded) {
     $("submitGameButton").disabled=false;
     if (error) return setGameFormMessage(error.message,true);
     await cleanupReplacedDeluxeImages(oldImages,newImages);
-    $("gameUploader").classList.add("hidden");
+    closeModal("gameUploader");
     resetGameEditor();
     await loadGames();
     if(currentRole==="admin"){await loadAdminPanel();return;}
