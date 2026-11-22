@@ -657,8 +657,11 @@ body{
         <p class="settings-note">Create a theme only for a game you published. Players must earn it by playing that specific game for 60 new seconds after the theme exists. Previously recorded playtime does not count.</p>
         <article class="exclusive-theme-card" style="margin:16px 0">
           <div class="exclusive-theme-body">
-            <label for="gameThemeOwnedGame">Your game</label>
-            <select id="gameThemeOwnedGame" style="display:block;width:100%;margin:7px 0 14px;padding:10px;border-radius:9px;background:var(--panel);color:var(--text);border:1px solid var(--line)"><option value="">Sign in to load your games</option></select>
+            <label for="gameThemeGameSearch">Search your games</label>
+            <input id="gameThemeGameSearch" type="search" placeholder="Type a game name…" autocomplete="off" style="display:block;width:100%;margin:7px 0 8px;padding:10px;border-radius:9px;background:var(--panel);color:var(--text);border:1px solid var(--line)">
+            <input id="gameThemeOwnedGame" type="hidden" value="">
+            <div id="gameThemeSelectedGame" class="small-note" style="margin:0 0 8px">No game selected</div>
+            <div id="gameThemeGameResults" role="listbox" aria-label="Your games" style="display:grid;gap:6px;max-height:190px;overflow:auto;margin:0 0 14px"></div>
             <label for="gameThemeName">Theme name</label>
             <input id="gameThemeName" maxlength="40" placeholder="My Game Theme" style="display:block;width:100%;margin:7px 0 14px">
             <div class="settings-grid">
@@ -1203,8 +1206,29 @@ function loadFromDeluxe(onLoaded) {
     $("gameThemeBackgroundImage").value = "";
     setGameThemeDesignerMessage("");
   }
+  function renderOwnedThemeGamePicker(query="") {
+    const results = $("gameThemeGameResults"), search = $("gameThemeGameSearch");
+    const selected = $("gameThemeOwnedGame")?.value || "";
+    const selectedLabel = $("gameThemeSelectedGame");
+    if (!results) return;
+    if (!currentUser || !sb) {
+      if (search) { search.disabled = true; search.placeholder = "Sign in to load your games"; }
+      results.innerHTML = '<p class="small-note">Sign in to load your games.</p>';
+      if (selectedLabel) selectedLabel.textContent = "No game selected";
+      return;
+    }
+    if (search) search.disabled = false;
+    const term = String(query || "").trim().toLowerCase();
+    const matches = ownedThemeGames.filter(game => String(game.title || "Untitled game").toLowerCase().includes(term));
+    const selectedGame = ownedThemeGames.find(game => game.id === selected);
+    if (selectedLabel) selectedLabel.textContent = selectedGame ? "Selected: " + (selectedGame.title || "Untitled game") : "No game selected";
+    results.innerHTML = matches.length ? matches.map(game =>
+      '<button type="button" role="option" aria-selected="' + (game.id === selected) + '" data-theme-game-id="' + escapeHtml(game.id) + '" style="display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;padding:10px 12px;border:1px solid ' + (game.id === selected ? 'var(--accent)' : 'var(--line)') + ';border-radius:9px;background:' + (game.id === selected ? 'rgba(124,92,255,.14)' : 'var(--panel)') + ';color:var(--text)"><span>' + escapeHtml(game.title || "Untitled game") + '</span><span class="small-note">' + (game.status === "published" ? "Published" : "Unpublished") + (game.id === selected ? " · Selected" : "") + '</span></button>'
+    ).join("") : '<p class="small-note">No matching games found.</p>';
+  }
   function loadGameThemeIntoEditor() {
     const gameId = $("gameThemeOwnedGame")?.value;
+    renderOwnedThemeGamePicker($("gameThemeGameSearch")?.value || "");
     const theme = customGameThemes.find(item => item.game_id === gameId);
     if (!theme) { clearGameThemeEditor(); return; }
     $("gameThemeName").value = theme.theme_name || "";
@@ -1235,16 +1259,14 @@ function loadFromDeluxe(onLoaded) {
     document.body.style.backgroundAttachment = imageUrl ? "fixed" : "";
   }
   async function loadGameThemeDesigner() {
-    const select = $("gameThemeOwnedGame");
+    const selectedInput = $("gameThemeOwnedGame");
     const collection = $("gameThemeCollection");
-    if (!select || !collection) return;
+    if (!selectedInput || !collection) return;
     if (!currentUser || !sb) {
-      select.innerHTML = '<option value="">Sign in to load your games</option>';
-      select.disabled = true;
+      renderOwnedThemeGamePicker();
       collection.innerHTML = '<p class="settings-note">Sign in to create themes and save unlocks to your account.</p>';
       return;
     }
-    select.disabled = false;
     const [gamesResult, themesResult, unlocksResult] = await Promise.all([
       sb.from("games").select("id,title,status").eq("creator_id", currentUser.id).order("created_at", {ascending:false}),
       sb.from("game_theme_designs").select("*"),
@@ -1257,10 +1279,10 @@ function loadFromDeluxe(onLoaded) {
     ownedThemeGames = gamesResult.data || [];
     customGameThemes = themesResult.data || [];
     customGameThemeUnlocks = unlocksResult.data || [];
-    const previous = select.value;
-    select.innerHTML = '<option value="">Choose one of your games…</option>' + ownedThemeGames.map(game => '<option value="' + escapeHtml(game.id) + '">' + escapeHtml(game.title || "Untitled game") + (game.status === "published" ? "" : " (unpublished)") + '</option>').join("");
-    select.value = ownedThemeGames.some(game => game.id === previous) ? previous : "";
-    if (!select.value && ownedThemeGames.length) select.value = ownedThemeGames[0].id;
+    const previous = selectedInput.value;
+    selectedInput.value = ownedThemeGames.some(game => game.id === previous) ? previous : "";
+    if (!selectedInput.value && ownedThemeGames.length) selectedInput.value = ownedThemeGames[0].id;
+    renderOwnedThemeGamePicker($("gameThemeGameSearch")?.value || "");
     loadGameThemeIntoEditor();
     renderGameThemeCollection();
     const active = customGameThemeUnlocks.find(unlock => unlock.is_active && unlock.unlocked_at);
@@ -1329,7 +1351,14 @@ function loadFromDeluxe(onLoaded) {
     renderGameThemeCollection();
     setGameThemeDesignerMessage("Theme applied!");
   }
-  $("gameThemeOwnedGame")?.addEventListener("change", loadGameThemeIntoEditor);
+  $("gameThemeGameSearch")?.addEventListener("input", event => renderOwnedThemeGamePicker(event.target.value));
+  $("gameThemeGameResults")?.addEventListener("click", event => {
+    const button = event.target.closest("[data-theme-game-id]");
+    if (!button) return;
+    $("gameThemeOwnedGame").value = button.dataset.themeGameId;
+    renderOwnedThemeGamePicker($("gameThemeGameSearch")?.value || "");
+    loadGameThemeIntoEditor();
+  });
   $("saveGameTheme")?.addEventListener("click", saveGameThemeDesign);
   $("clearGameTheme")?.addEventListener("click", clearGameThemeEditor);
 
