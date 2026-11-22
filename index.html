@@ -583,6 +583,7 @@ body{
       <div class="page-title"><p class="eyebrow">DELUXE ECONOMY</p><h1>🪙 Delubux Marketplace</h1><p>Earn daily Delubux and buy or gift community themes.</p></div>
       <article class="exclusive-theme-card"><div class="exclusive-theme-body"><h2>Daily reward · 10 Delubux</h2><p>Claim once every 24 hours.</p><button class="primary" id="claimDailyReward" onclick="claimDailyDelubux()">Claim 10 🪙</button><div id="dailyRewardMessage" class="theme-message"></div></div></article>
       <div class="section-heading"><h2>Account roles</h2></div><p class="settings-note">Bugtester is available for 30 Delubux. Publisher is not for sale and can only be gifted by an Admin. Publisher usernames are green; Bugtester usernames are blue.</p><div id="roleMarketplaceGrid" class="settings-grid"></div><div id="roleMarketplaceMessage" class="theme-message"></div>
+      <div class="section-heading"><h2>Community Themes</h2></div><p class="settings-note">Purchase themes made by Deluxe creators for 6 Delubux, or gift a theme you already own for 5 Delubux.</p><div id="communityThemeMarketplaceGrid" class="settings-grid"><div class="loading">Loading community themes…</div></div><div id="communityThemeMarketplaceMessage" class="theme-message" role="status"></div>
       <div class="section-heading"><h2>Seasonal Bundles</h2></div><p class="settings-note">Limited seasonal collections with three games in every pack. Gifting seasonal bundles is 15% cheaper than buying one for yourself.</p><div id="seasonalMarketplaceGrid" class="seasonal-bundle-grid"><div class="loading">Loading seasonal bundles…</div></div>
       
     </section>
@@ -1013,6 +1014,16 @@ function loadFromDeluxe(onLoaded) {
             <div id="adminThemeGiftStatus" class="auth-message" role="status" aria-live="polite"></div>
           </div>
         </div>
+
+        <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">CREATOR REWARDS</p><h2>Gift a user-created theme</h2></div></div>
+        <div class="game-uploader"><div class="game-form">
+          <p class="small-note">Choose any published creator theme and grant it to a user for free. The recipient will keep the theme unlocked in their collection.</p>
+          <label for="adminCreatedThemeGiftSearch">Find a user<input id="adminCreatedThemeGiftSearch" type="search" placeholder="Search usernames…" oninput="renderAdminCreatedThemeGiftUsers()"></label>
+          <label for="adminCreatedThemeGiftUser">Recipient<select id="adminCreatedThemeGiftUser"><option value="">Loading users…</option></select></label>
+          <label for="adminCreatedThemeGiftTheme">Creator theme<select id="adminCreatedThemeGiftTheme"><option value="">Loading themes…</option></select></label>
+          <button class="primary" id="adminGiftCreatedThemeButton" type="button" onclick="giftAdminCreatedTheme()">Gift Creator Theme</button>
+          <div id="adminCreatedThemeGiftStatus" class="auth-message" role="status" aria-live="polite"></div>
+        </div></div>
 
         <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">COMMUNITY SAFETY</p><h2>User reports</h2></div></div>
         <div id="adminUserReports" class="admin-report-list"><div class="loading">Loading reports…</div></div>
@@ -2218,11 +2229,30 @@ function loadFromDeluxe(onLoaded) {
     root.appendChild(section);
   }
 
+  async function loadCommunityThemeMarketplace(){
+    const grid=$("communityThemeMarketplaceGrid");if(!grid)return;
+    if(!sb){grid.innerHTML='<div class="empty-state">Marketplace unavailable.</div>';return;}
+    grid.innerHTML='<div class="loading">Loading community themes…</div>';
+    try{
+      const {data:themes,error}=await sb.from("game_theme_designs").select("game_id,creator_id,theme_name,background_image_url,background_color,text_color,accent_color,games(title)").order("updated_at",{ascending:false});
+      if(error)throw error;
+      const rows=themes||[];
+      let owned=new Set();
+      if(currentUser){const {data,error:ownedError}=await sb.from("user_created_theme_ownership").select("game_id").eq("user_id",currentUser.id);if(ownedError)throw ownedError;owned=new Set((data||[]).map(x=>x.game_id));}
+      const creatorIds=[...new Set(rows.map(t=>t.creator_id).filter(Boolean))];
+      let creatorNames={};
+      if(creatorIds.length){const {data:profiles,error:profileError}=await sb.from("profiles").select("id,username").in("id",creatorIds);if(profileError)throw profileError;creatorNames=Object.fromEntries((profiles||[]).map(p=>[p.id,p.username||"Deluxe creator"]));}
+      grid.innerHTML=rows.map(theme=>{
+        const isOwned=owned.has(theme.game_id),isCreator=currentUser?.id===theme.creator_id;
+        const preview=theme.background_image_url&&validGameUrl(theme.background_image_url)?'<div class="exclusive-theme-preview" style="background-image:linear-gradient(180deg,transparent,rgba(0,0,0,.35)),url(\''+escapeHtml(theme.background_image_url)+'\');background-size:cover;background-position:center"></div>':'<div class="exclusive-theme-preview" style="background:'+escapeHtml(theme.background_color||"#171923")+';color:'+escapeHtml(theme.text_color||"#fff")+';display:grid;place-items:center;font-size:32px">✦</div>';
+        const action=isOwned?'<button class="secondary" disabled>'+(isCreator?'Your theme':'Owned')+'</button>':'<button class="primary" onclick="buyUserTheme(\''+theme.game_id+'\',this)">Buy · 6 🪙</button>';
+        const gift=isOwned&&!isCreator?'<button class="secondary" onclick="giftUserTheme(\''+theme.game_id+'\')">Gift · 5 🪙</button>':'';
+        return '<article class="exclusive-theme-card">'+preview+'<div class="exclusive-theme-body"><div class="theme-status'+(isOwned?' unlocked':'')+'">'+(isOwned?'✓ Owned':'Community theme')+'</div><h3>'+escapeHtml(theme.theme_name||"Untitled theme")+'</h3><p>'+escapeHtml(theme.games?.title||"Deluxe game")+' · by '+escapeHtml(creatorNames[theme.creator_id]||"Deluxe creator")+'</p><div class="theme-actions">'+action+gift+'</div></div></article>';
+      }).join("")||'<div class="empty-state">No creator themes are available yet.</div>';
+    }catch(error){grid.innerHTML='<div class="empty-state">Could not load community themes: '+escapeHtml(error.message||"Unknown error")+'</div>';}
+  }
   async function loadThemeMarketplace(){
-    await loadSeasonalMarketplace();
-    await loadRoleMarketplace();
-    // Creator themes are displayed on their owner’s public profile instead of a global listing.
-
+    await Promise.all([loadSeasonalMarketplace(),loadRoleMarketplace(),loadCommunityThemeMarketplace()]);
   }
   const themePurchaseInFlight = new Set();
   async function buyUserTheme(gameId,button){
@@ -3680,6 +3710,39 @@ flushDeluxePlayTracking();
     }
   }
 
+  let adminCreatedThemeRows=[];
+  function renderAdminCreatedThemeGiftUsers(){
+    const select=$("adminCreatedThemeGiftUser");if(!select)return;
+    const q=String($("adminCreatedThemeGiftSearch")?.value||"").trim().toLowerCase(),previous=select.value;
+    const users=adminAllUsers.filter(u=>String(u.username||"").toLowerCase().includes(q));
+    select.innerHTML='<option value="">Choose a recipient…</option>'+users.map(u=>'<option value="'+escapeHtml(u.id)+'">'+escapeHtml(u.username||"User")+'</option>').join("");
+    if(users.some(u=>u.id===previous))select.value=previous;
+  }
+  async function loadAdminCreatedThemeGiftThemes(){
+    const select=$("adminCreatedThemeGiftTheme");if(!select||currentRole!=="admin")return;
+    const {data,error}=await sb.from("game_theme_designs").select("game_id,creator_id,theme_name,games(title)").order("theme_name");
+    if(error){select.innerHTML='<option value="">Could not load themes</option>';return;}
+    adminCreatedThemeRows=data||[];
+    select.innerHTML='<option value="">Choose a creator theme…</option>'+adminCreatedThemeRows.map(t=>'<option value="'+t.game_id+'">'+escapeHtml(t.theme_name||"Untitled theme")+' — '+escapeHtml(t.games?.title||"Game")+'</option>').join("");
+  }
+  async function giftAdminCreatedTheme(){
+    const status=$("adminCreatedThemeGiftStatus"),button=$("adminGiftCreatedThemeButton");
+    const userId=$("adminCreatedThemeGiftUser")?.value,gameId=$("adminCreatedThemeGiftTheme")?.value;
+    if(!currentUser||currentRole!=="admin"||!sb){if(status)status.textContent="Admin access required.";return;}
+    if(!userId||!gameId){if(status)status.textContent="Choose a recipient and theme.";return;}
+    const recipient=adminAllUsers.find(u=>u.id===userId),theme=adminCreatedThemeRows.find(t=>t.game_id===gameId);
+    if(!confirm('Gift "'+(theme?.theme_name||"this theme")+'" to '+(recipient?.username||"this user")+' for free?'))return;
+    if(button)button.disabled=true;if(status)status.textContent="Sending theme gift…";
+    try{
+      const {data,error}=await sb.rpc("admin_gift_user_created_theme",{p_target_user_id:userId,p_game_id:gameId});
+      if(error)throw error;
+      const row=Array.isArray(data)?data[0]:data;
+      if(status)status.textContent='Gifted "'+(row?.theme_name||theme?.theme_name||"theme")+'" to '+(row?.username||recipient?.username||"user")+'.';
+      await loadCommunityThemeMarketplace();
+    }catch(error){if(status)status.textContent=error.message||"Unable to gift theme.";if(status)status.style.color="#ff7b7b";}
+    finally{if(button)button.disabled=false;}
+  }
+
   let communityWordFilterRows = [];
 
   function renderCommunityWordFilter(){
@@ -3856,6 +3919,8 @@ flushDeluxePlayTracking();
     dashboard.classList.remove("hidden");
     if (window.initDeluxeAdminV2) window.initDeluxeAdminV2();
     await loadAdminUserTools();
+    renderAdminCreatedThemeGiftUsers();
+    await loadAdminCreatedThemeGiftThemes();
     await loadAdminSeasonalBundles();
     await loadCommunityWordFilter();
 
