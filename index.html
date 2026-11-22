@@ -334,6 +334,8 @@ body.light-mode .game-detail-description-card{background:#fff}
 .community-card-actions button:hover{color:var(--text);background:rgba(255,255,255,.12)}
 
 .profile-page-shell{max-width:1050px;margin:0 auto}.profile-banner{min-height:250px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#28213f,#111722) center/cover;position:relative;display:flex;align-items:end;padding:26px;margin-bottom:22px}.profile-banner:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.82))}.profile-banner-content{position:relative;display:flex;align-items:center;gap:18px;min-width:0}.profile-banner .avatar{width:86px;height:86px;flex:0 0 86px;border:3px solid rgba(255,255,255,.75);box-shadow:0 8px 28px rgba(0,0,0,.35)}.profile-banner h1{margin:0;color:#fff;font-size:clamp(28px,5vw,42px);overflow-wrap:anywhere}.profile-page-bio{color:var(--muted);font-size:15px;line-height:1.7;white-space:pre-wrap;margin:18px 0 26px}.profile-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.profile-theme-card{overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.profile-theme-image{height:130px;background:linear-gradient(135deg,#292f40,#171b25) center/cover}.profile-theme-body{padding:14px}.profile-theme-body h3{margin:0 0 6px}.profile-theme-body p{color:var(--muted);font-size:13px;margin:0}.profile-page-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+
+.profile-page-actions{display:flex;justify-content:flex-end;margin:12px 0 4px}.admin-report-list{display:grid;gap:12px}.admin-report-card,.admin-report-empty{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.admin-report-card p{line-height:1.5;margin:9px 0}.admin-report-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.admin-report-top>div{display:flex;align-items:center;gap:9px}.admin-report-top small{color:var(--muted)}.admin-report-details{white-space:pre-wrap;color:var(--muted);padding:10px 12px;background:var(--panel2);border-radius:9px}.admin-report-empty{color:var(--muted);text-align:center;padding:24px}
 </style>
 <style id="deluxeSocialStyles">
 .social-layout{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.5fr);gap:18px;align-items:start}.social-panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;min-width:0}.social-panel h2,.social-panel h3{margin:0 0 12px}.social-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.social-row:last-child{border-bottom:0}.social-row .grow{flex:1;min-width:0}.social-row small,.social-muted{color:var(--muted);font-size:12px}.social-input,.social-select,.social-textarea{width:100%;padding:11px 12px;background:#0b0d11;border:1px solid var(--line);border-radius:9px;color:var(--text);margin:5px 0 10px}.social-textarea{min-height:75px;resize:vertical}.social-feed{display:grid;gap:9px;max-height:440px;overflow:auto;margin:12px 0}.social-post{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px}.social-post p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0 0;line-height:1.5}.social-channel-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.social-channel-tabs button.active{background:var(--accent);border-color:var(--accent)}.presence-pill{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:12px}.presence-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:#747b88}.presence-pill.online:before{background:#4ade80}.deluxe-toast{position:fixed;top:18px;right:18px;bottom:auto;z-index:2147483647;max-width:min(390px,calc(100vw - 36px));background:#171b24;border:1px solid var(--accent);box-shadow:0 18px 55px #0008;border-radius:14px;padding:15px 17px;pointer-events:auto}.deluxe-toast strong{display:block;margin-bottom:5px}.deluxe-toast p{margin:0;color:var(--muted);line-height:1.45;font-size:14px}.game-player-shell:fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#000!important;z-index:1}.game-player-shell:fullscreen .game-player-frame{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important}.game-player-shell:fullscreen .deluxe-toast{position:fixed;top:18px;right:18px;bottom:auto;z-index:2147483647}@media(max-width:760px){.social-layout{grid-template-columns:1fr}}
@@ -920,7 +922,7 @@ function loadFromDeluxe(onLoaded) {
         <div class="section-heading" style="margin-top:30px">
           <div><p class="eyebrow">GAMES</p><h2>Recent games</h2></div>
         </div>
-        <div id="adminGames" class="user-grid"><div class="loading">Loading…</div></div>
+        <div class="game-uploader" style="margin-bottom:14px"><label for="adminGameSearch">Search every game<input id="adminGameSearch" type="search" placeholder="Search game titles, creators or descriptions…"></label><p class="small-note" id="adminGameCountNote">Loading the complete game catalogue…</p></div><div id="adminGames" class="user-grid"><div class="loading">Loading…</div></div>
 
         <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">OWNER-ONLY MARKETPLACE</p><h2>🎁 Create Seasonal Bundle</h2></div></div>
         <div class="game-uploader">
@@ -1004,9 +1006,9 @@ function loadFromDeluxe(onLoaded) {
           </div>
         </div>
 
-        <div class="section-heading" style="margin-top:30px">
-          <div><p class="eyebrow">USER MANAGEMENT</p><h2>Suspensions & bans</h2></div>
-        </div>
+        <div class="section-heading" style="margin-top:30px"><div><p class="eyebrow">COMMUNITY SAFETY</p><h2>User reports</h2></div></div>
+        <div id="adminUserReports" class="admin-report-list"><div class="loading">Loading reports…</div></div>
+        <div class="section-heading" id="adminUserBansHeading" style="margin-top:30px"><div><p class="eyebrow">USER MANAGEMENT</p><h2>Suspensions & bans</h2></div></div>
         <div class="admin-tools">
           <input id="adminBanSearch" class="admin-search" type="search" placeholder="Search users to suspend or ban…">
           <div id="adminBanUsers" class="user-grid" style="margin-top:12px"><div class="loading">Loading…</div></div>
@@ -1131,6 +1133,7 @@ function loadFromDeluxe(onLoaded) {
   let currentRole = "user";
   let currentRoles = [];
   let adminUsersCache = [];
+  let adminAllGames = [];
   let adminAllUsers = [];
   let adminSelectedUserId = null;
   let delubuxBalance = 0;
@@ -2453,13 +2456,15 @@ function loadFromDeluxe(onLoaded) {
     const profileRoles=(profileRoleRows||[]).map(x=>x.role),baseProfileRole=roleData?.role||"user",profileRole=bestRoleFor(profileRoles,baseProfileRole);
     const themeRows=themes||[],ownedIds=new Set((owned||[]).map(x=>x.game_id)),isOwn=!!currentUser&&currentUser.id===id;
     const banner=themeRows.find(t=>t.background_image_url)?.background_image_url||"";
-    root.innerHTML='<section class="profile-banner"><div class="profile-banner-content"><div class="avatar" id="memberProfileAvatar"></div><div><h1 id="memberProfileName"></h1><div id="memberProfileRole" class="role"></div></div></div></section><p id="memberProfileBio" class="profile-page-bio"></p><div class="profile-meta">Member of Secret Unblocked Deluxe</div><div class="section-heading"><div><p class="eyebrow">CREATED BY THIS MEMBER</p><h2>Themes</h2></div></div><div id="memberProfileThemes" class="profile-theme-grid"></div>';
+    root.innerHTML='<section class="profile-banner"><div class="profile-banner-content"><div class="avatar" id="memberProfileAvatar"></div><div><h1 id="memberProfileName"></h1><div id="memberProfileRole" class="role"></div></div></div></section><div class="profile-page-actions" id="memberProfileActions"></div><p id="memberProfileBio" class="profile-page-bio"></p><div class="profile-meta">Member of Secret Unblocked Deluxe</div><div class="section-heading"><div><p class="eyebrow">CREATED BY THIS MEMBER</p><h2>Themes</h2></div></div><div id="memberProfileThemes" class="profile-theme-grid"></div>';
     const bannerEl=root.querySelector(".profile-banner");
     if(banner&&validGameUrl(banner))bannerEl.style.backgroundImage='linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.8)),url("'+banner.replace(/["\\)]/g,"")+'")';
     const avatar=root.querySelector("#memberProfileAvatar");
     avatar.innerHTML=p.avatar_url?'<img src="'+escapeHtml(p.avatar_url)+'" alt="">':escapeHtml(initials(p.username));
     root.querySelector("#memberProfileName").innerHTML=escapeHtml(p.username||"User")+" "+roleTicksMarkup(profileRoles,baseProfileRole);
     root.querySelector("#memberProfileRole").textContent=roleLabel(profileRole);
+    const profileActions=root.querySelector("#memberProfileActions");
+    if(profileActions && currentUser && currentUser.id!==id){const reportButton=document.createElement("button");reportButton.type="button";reportButton.className="danger-button";reportButton.textContent="⚑ Report user";reportButton.addEventListener("click",()=>reportUserProfile(id,p.username||"this user"));profileActions.append(reportButton);}
     root.querySelector("#memberProfileBio").textContent=p.bio||"No bio yet.";
     const grid=root.querySelector("#memberProfileThemes");
     themeRows.forEach(t=>{
@@ -3008,11 +3013,11 @@ function loadFromDeluxe(onLoaded) {
 
   async function editMyGame(id){
     if (!sb || !currentUser) return openAuth("login");
-    const game = allPublishedGames.find(g => g.id === id);
-    if (!game || game.creator_id !== currentUser.id) return;
+    const game = allPublishedGames.find(g => g.id === id) || adminAllGames.find(g => g.id === id);
+    if (!game || (currentRole !== "admin" && game.creator_id !== currentUser.id)) return;
     editingGameId = id;
-    $("gameEditorEyebrow").textContent = "YOUR GAME";
-    $("gameEditorTitle").textContent = "Edit your game";
+    $("gameEditorEyebrow").textContent = currentRole === "admin" && game.creator_id !== currentUser.id ? "ADMIN EDIT" : "YOUR GAME";
+    $("gameEditorTitle").textContent = currentRole === "admin" && game.creator_id !== currentUser.id ? "Edit any game" : "Edit your game";
     $("submitGameButton").textContent = "Save changes";
     $("gameTitle").value = game.title || "";
     $("gameTitleImage").value = game.title_image_url || "";
@@ -3120,16 +3125,19 @@ function loadFromDeluxe(onLoaded) {
     setGameFormMessage("Saving changes…");
     let hostedTitle=title_image_url,hostedThumbs=thumbnail_images,hostedIcon=icon_url;
     try { hostedTitle=await hostDeluxeImage(title_image_url,"game-title"); hostedThumbs=await hostDeluxeImages(thumbnail_images,"game-thumbnail"); hostedIcon=await hostDeluxeImage(icon_url,"game-icon"); } catch(e) { $("submitGameButton").disabled=false; return setGameFormMessage("Image upload failed: "+e.message,true); }
-    const previous=allPublishedGames.find(g=>g.id===id);
+    const previous=allPublishedGames.find(g=>g.id===id)||adminAllGames.find(g=>g.id===id);
     const oldImages=[previous?.title_image_url,previous?.thumbnail_url,previous?.icon_url,...(previous?.thumbnail_images||[])];
     const newImages=[hostedTitle,hostedIcon,...hostedThumbs];
-    const {error} = await sb.from("games") .update({title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id).eq("creator_id",currentUser.id);
+    let updateQuery=sb.from("games").update({title,title_image_url:hostedTitle||null,description,tags,age_recommendation:age_recommendation||null,thumbnail_url:hostedThumbs[0]||null,thumbnail_images:hostedThumbs,icon_url:hostedIcon||null,game_url,discord_url:discord_url||null,fandom_url:fandom_url||null,promo_videos:promo_videos.videos,chat_enabled:$("gameChatEnabled").checked,updated_at:new Date().toISOString()}).eq("id",id);
+    if(currentRole!=="admin")updateQuery=updateQuery.eq("creator_id",currentUser.id);
+    const {error} = await updateQuery;
     $("submitGameButton").disabled=false;
     if (error) return setGameFormMessage(error.message,true);
     await cleanupReplacedDeluxeImages(oldImages,newImages);
     $("gameUploader").classList.add("hidden");
     resetGameEditor();
     await loadGames();
+    if(currentRole==="admin"){await loadAdminPanel();return;}
     const updated=allPublishedGames.find(g=>g.id===id);
     if(updated)openGameDetails(id);
   }
@@ -3619,6 +3627,73 @@ flushDeluxePlayTracking();
   window.addCommunityFilteredWord = addCommunityFilteredWord;
   window.removeCommunityFilteredWord = removeCommunityFilteredWord;
 
+
+  async function reportUserProfile(userId, username){
+    if(!currentUser){openAuth("login");return;}
+    if(userId===currentUser.id)return;
+    const reason=(prompt("Why are you reporting "+username+"? (e.g. harassment, inappropriate profile, impersonation)","")||"").trim();
+    if(!reason)return;
+    const details=(prompt("Add any helpful details (optional, max 1000 characters):","")||"").trim().slice(0,1000);
+    const {error}=await sb.from("user_reports").insert({reporter_id:currentUser.id,reported_user_id:userId,reason:reason.slice(0,120),details});
+    if(error){alert("Your report could not be submitted: "+error.message);return;}
+    if(typeof toast==="function")toast("Report submitted","An Admin can review it in Admin Panel → Moderation → User reports.");
+    else alert("Report submitted. An Admin can review it in Admin Panel → Moderation → User reports.");
+  }
+  window.reportUserProfile=reportUserProfile;
+
+  async function loadAdminReports(){
+    const root=$("adminUserReports");if(!root||currentRole!=="admin")return;
+    root.innerHTML='<div class="loading">Loading user reports…</div>';
+    const {data,error}=await sb.from("user_reports").select("id,reporter_id,reported_user_id,reason,details,status,created_at").order("created_at",{ascending:false}).limit(100);
+    if(error){root.innerHTML='<div class="loading">Could not load reports: '+escapeHtml(error.message)+'</div>';return;}
+    if(!data?.length){root.innerHTML='<div class="admin-report-empty">No user reports yet.</div>';return;}
+    const ids=[...new Set(data.flatMap(r=>[r.reporter_id,r.reported_user_id]))];
+    const {data:profiles}=await sb.from("profiles").select("id,username").in("id",ids);
+    const byId=new Map((profiles||[]).map(p=>[p.id,p]));
+    root.innerHTML=data.map(r=>{
+      const reporter=byId.get(r.reporter_id)?.username||"Unknown user";
+      const reported=byId.get(r.reported_user_id)?.username||"Unknown user";
+      return '<article class="admin-report-card"><div class="admin-report-top"><div><strong>'+escapeHtml(reported)+'</strong><span class="admin-status">'+escapeHtml(r.status)+'</span></div><small>'+escapeHtml(new Date(r.created_at).toLocaleString())+'</small></div><p><b>Reason:</b> '+escapeHtml(r.reason)+'</p>'+(r.details?'<p class="admin-report-details">'+escapeHtml(r.details)+'</p>':'')+'<p class="small-note">Reported by '+escapeHtml(reporter)+'</p><div class="admin-actions"><button class="secondary" type="button" onclick="jumpToReportedUser(\''+r.reported_user_id+'\')">Review in user bans</button>'+(r.status==="open"?'<button class="primary" type="button" onclick="setUserReportStatus(\''+r.id+'\',\'reviewed\')">Mark reviewed</button>':'')+'<button class="secondary" type="button" onclick="setUserReportStatus(\''+r.id+'\',\'dismissed\')">Dismiss</button></div></article>';
+    }).join("");
+  }
+  async function setUserReportStatus(id,status){
+    if(currentRole!=="admin")return;
+    const {error}=await sb.from("user_reports").update({status,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq("id",id);
+    if(error){alert(error.message);return;}
+    await loadAdminReports();
+  }
+  function jumpToReportedUser(userId){
+    if(currentRole!=="admin")return;
+    const user=adminUsersCache.find(u=>u.id===userId);
+    const search=$("adminBanSearch");if(search)search.value=user?.username||userId;
+    renderAdminBanUsers();
+    document.querySelector('[data-admin-tab="moderation"]')?.click();
+    setTimeout(()=>{$("adminUserBansHeading")?.scrollIntoView({behavior:"smooth",block:"start"});},80);
+  }
+  window.setUserReportStatus=setUserReportStatus;
+  window.jumpToReportedUser=jumpToReportedUser;
+
+  function renderAdminAllGames(){
+    const root=$("adminGames");if(!root)return;
+    const q=String($("adminGameSearch")?.value||"").trim().toLowerCase();
+    const games=adminAllGames.filter(g=>[g.title,g.description,g.profiles?.username,g.creator_id,g.status].some(v=>String(v||"").toLowerCase().includes(q)));
+    const note=$("adminGameCountNote");if(note)note.textContent="Showing "+games.length+" of "+adminAllGames.length+" games · search covers the full catalogue.";
+    root.innerHTML=games.map(g=>'<article class="user-card"><div class="avatar">🎮</div><div class="user-name">'+escapeHtml(g.title||"Untitled Game")+'</div><div class="admin-status">'+escapeHtml(g.status||"unknown")+'</div><p style="color:var(--muted);line-height:1.5">'+escapeHtml(g.description||"No description.")+'</p><div class="role">Creator: '+escapeHtml(g.profiles?.username||g.creator_id||"unknown")+'</div><div class="admin-game-actions"><button class="primary" type="button" onclick="editMyGame(\''+g.id+'\')">Edit game</button>'+(g.status!=="published"?'<button class="secondary" type="button" onclick="setGameStatus(\''+g.id+'\',\'published\')">Publish</button>':'<button class="secondary" type="button" onclick="setGameStatus(\''+g.id+'\',\'pending\')">Unpublish</button>')+'<button class="secondary" type="button" onclick="openGame(\''+g.id+'\')">Open game</button><button class="danger-button" type="button" onclick="deleteGameAdmin(\''+g.id+'\')">Delete</button></div></article>').join("")||'<div class="loading">No games match your search.</div>';
+  }
+  async function loadAdminAllGames(){
+    const root=$("adminGames");if(!root||currentRole!=="admin")return;
+    root.innerHTML='<div class="loading">Loading every game…</div>';
+    const rows=[];const batch=500;let from=0;
+    while(true){
+      const {data,error}=await sb.from("games").select("id,title,description,thumbnail_url,game_url,status,created_at,updated_at,creator_id,chat_enabled,icon_url,title_image_url,tags,age_recommendation,thumbnail_images,discord_url,fandom_url,promo_videos,profiles(username)").order("created_at",{ascending:false}).range(from,from+batch-1);
+      if(error){root.innerHTML='<div class="loading">Unable to load the game catalogue: '+escapeHtml(error.message)+'</div>';return;}
+      rows.push(...(data||[]));if(!data||data.length<batch)break;from+=batch;
+    }
+    adminAllGames=rows;
+    renderAdminAllGames();
+  }
+  $("adminGameSearch")?.addEventListener("input",renderAdminAllGames);
+
   async function loadAdminPanel(){
     const access = $("adminAccessMessage");
     const dashboard = $("adminDashboard");
@@ -3691,25 +3766,8 @@ flushDeluxePlayTracking();
       }
     }
 
-    if (recentGamesResult.error) {
-      $("adminGames").innerHTML = '<div class="loading">Unable to load games.</div>';
-    } else {
-      $("adminGames").innerHTML = (recentGamesResult.data || []).map(g => `
-        <article class="user-card">
-          <div class="avatar">🎮</div>
-          <div class="user-name">${escapeHtml(g.title || g.name || "Untitled Game")}</div>
-          <div class="admin-status">${escapeHtml(g.status || "unknown")}</div>
-          <p style="color:var(--muted);line-height:1.5">${escapeHtml(g.description || "No description.")}</p>
-          <div class="role">Creator: ${escapeHtml(g.creator_id || "unknown")}</div>
-          <div class="admin-game-actions">
-            ${g.status !== "published" ? `<button class="primary" onclick="setGameStatus('${g.id}','published')">Publish</button>` : `<button class="secondary" onclick="setGameStatus('${g.id}','pending')">Unpublish</button>`}
-            <button class="secondary" onclick="openGame('${g.id}')">Open Game</button>
-            ${g.chat_enabled ? `<button class="secondary" onclick="openGameChatFromAdmin('${g.id}')">💬 Chat</button>` : `<button class="secondary" onclick="alert('Chat is disabled for this game.')">💬 Chat (off)</button>`}
-            <button class="danger-button" onclick="deleteGameAdmin('${g.id}')">Delete</button>
-          </div>
-        </article>
-      `).join("") || '<div class="loading">No games yet.</div>';
-    }
+    await loadAdminAllGames();
+    await loadAdminReports();
 
     if (recentMessagesResult.error) {
       $("adminMessages").innerHTML = '<div class="loading">Unable to load messages.</div>';
@@ -4733,7 +4791,7 @@ window.openGameDetails=function(id){
     {id:"users",label:"Users",icon:"♙",desc:"Accounts, roles, user messages and recent activity."},
     {id:"games",label:"Games",icon:"▣",desc:"Review the game catalogue and manage seasonal releases."},
     {id:"community",label:"Community",icon:"▤",desc:"Community safety tools and recent conversations."},
-    {id:"moderation",label:"Moderation",icon:"⬡",desc:"Review account restrictions and moderation actions."},
+    {id:"moderation",label:"Moderation",icon:"⬡",desc:"Review user reports, account restrictions and moderation actions."},
     {id:"currency",label:"Delubux",icon:"◈",desc:"Manage balances and platform currency."},
     {id:"themes",label:"Themes",icon:"◐",desc:"Gift and manage exclusive theme rewards."},
     {id:"storage",label:"Image Storage",icon:"▧",desc:"Manage Deluxe image hosting and migration."}
@@ -4741,7 +4799,7 @@ window.openGameDetails=function(id){
   function categoryFor(title){
     const t=title.toLowerCase();
     if(t.includes("word filter")||t.includes("recent messages"))return "community";
-    if(t.includes("suspensions")||t.includes("bans"))return "moderation";
+    if(t.includes("suspensions")||t.includes("bans")||t.includes("reports"))return "moderation";
     if(t.includes("recent games")||t.includes("seasonal bundle"))return "games";
     if(t.includes("delubux"))return "currency";
     if(t.includes("exclusive theme"))return "themes";
