@@ -1301,8 +1301,18 @@ function loadFromDeluxe(onLoaded) {
     if (error) return setGameThemeDesignerMessage(error.message, true);
     const {error:ownershipError} = await sb.from("user_created_theme_ownership").upsert({user_id:currentUser.id,game_id:gameId,acquired_via:"creator"},{onConflict:"user_id,game_id",ignoreDuplicates:true});
     if (ownershipError) return setGameThemeDesignerMessage("Theme saved, but creator ownership could not be recorded: "+ownershipError.message,true);
+    // The creator receives their own theme immediately; other players still earn it through playtime.
+    const existingUnlock = customGameThemeUnlocks.find(item => item.game_id === gameId);
+    const {error:unlockError} = await sb.from("game_theme_unlocks").upsert({
+      user_id:currentUser.id,
+      game_id:gameId,
+      fresh_seconds:60,
+      unlocked_at:existingUnlock?.unlocked_at || new Date().toISOString(),
+      is_active:!!existingUnlock?.is_active
+    },{onConflict:"user_id,game_id"});
+    if (unlockError) return setGameThemeDesignerMessage("Theme saved, but your creator unlock could not be recorded: "+unlockError.message,true);
     if(previousTheme?.background_image_url!==hostedBackground) await cleanupReplacedDeluxeImages([previousTheme?.background_image_url],[hostedBackground]);
-    setGameThemeDesignerMessage("Theme saved! Everyone must play this game for 60 new seconds to unlock it.");
+    setGameThemeDesignerMessage("Theme saved! Your theme is automatically unlocked for you.");
     await loadGameThemeDesigner();
   }
   async function activateGameTheme(gameId) {
