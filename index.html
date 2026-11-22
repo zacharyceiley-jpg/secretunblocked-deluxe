@@ -4774,6 +4774,8 @@ window.openGameDetails=function(id){
       if(node.classList.contains("section-heading")){
         const heading=node.querySelector("h2")?.textContent||"";
         active=categoryFor(heading);
+      } else if(node.matches(".feature-grid")){
+        active="overview";
       } else if(active==="overview" && node.matches(".feature") && /image storage/i.test(node.textContent)){
         active="storage";
       }
