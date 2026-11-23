@@ -2908,10 +2908,44 @@ function loadFromDeluxe(onLoaded) {
     $("deluxeAgeSetting").value = savedDeluxeAge === null ? "" : String(savedDeluxeAge);
     if ($("deluxeAgeSettingStatus") && savedDeluxeAge !== null) $("deluxeAgeSettingStatus").textContent = "Saved on this device. No birthday is stored.";
   }
+  function deluxeGameSlug(title, fallback) {
+    const slug = String(title || "").normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    return slug || String(fallback || "game");
+  }
+
+  // Open the game in its own /play/<slug> URL in a separate browser tab.
+  // window.open runs synchronously from the click so popup blockers allow it.
+  window.playGameInNewTab = function(id) {
+    const game = allPublishedGames.find(item => String(item.id) === String(id));
+    if (!game) return;
+    if (!checkGameAgeBeforePlay(game)) return;
+    const slug = deluxeGameSlug(game.title, game.id);
+    const collisions = allPublishedGames.filter(item => deluxeGameSlug(item.title, item.id) === slug);
+    const url = new URL("/play/" + encodeURIComponent(slug), window.location.origin);
+    if (collisions.length > 1) url.searchParams.set("id", game.id);
+    window.open(url.href, "_blank", "noopener,noreferrer");
+  };
+
+  function openGameFromPlayRoute() {
+    if (!/^\\/play\\/[^/]+\\/?$/.test(window.location.pathname) || window.__deluxePlayRouteHandled) return;
+    window.__deluxePlayRouteHandled = true;
+    let slug = "";
+    try { slug = decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || ""); } catch (_) {}
+    const requestedId = new URLSearchParams(window.location.search).get("id");
+    const game = requestedId
+      ? allPublishedGames.find(item => String(item.id) === String(requestedId))
+      : allPublishedGames.find(item => deluxeGameSlug(item.title, item.id) === slug);
+    if (!game) {
+      showPage("games");
+      alert("This game could not be found. It may have been removed or unpublished.");
+      return;
+    }
+    openGame(game.id);
+  }
+
   function playGameFromDetails(id) {
-    rememberDeluxeGame(id);
-    startDeluxePlayTracking(id);
-    openGame(id);
+    window.playGameInNewTab(id);
   }
   let deluxePlayTrackingId = null;
   let deluxePlayTrackingStarted = 0;
@@ -2978,6 +3012,7 @@ function loadFromDeluxe(onLoaded) {
     await loadPurchasedSeasonalGames();
     restoreDeluxePreferredGenres();
     renderGames($("gameSearch")?.value || "");
+    openGameFromPlayRoute();
   }
 
   let gameCollections = [];
@@ -3350,6 +3385,10 @@ flushDeluxePlayTracking();
     sfothPlayTimer = null;
     currentGame = null;
     $("gamePlayerRoot").innerHTML = "";
+    if (/^\\/play\\//.test(window.location.pathname)) {
+      window.__deluxePlayRouteHandled = false;
+      window.history.replaceState({}, "", "/");
+    }
     showPage("games");
   }
 
