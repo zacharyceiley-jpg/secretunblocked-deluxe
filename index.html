@@ -719,6 +719,23 @@ body{
         <div class="section-heading"><div><p class="eyebrow">LIBRARY</p><h2>Published Games</h2></div></div>
         <div id="gameGrid" class="user-grid"><div class="loading">Loading games…</div></div>
       </div>
+      <article class="exclusive-theme-card" style="margin-top:30px">
+        <div class="exclusive-theme-body">
+          <p class="eyebrow">COMMUNITY SUGGESTIONS</p>
+          <h2>Request a game</h2>
+          <p>Suggest a game for the Deluxe library. Your request will be sent directly to the admins' inbox.</p>
+          <form id="gameRequestForm" class="game-form">
+            <label for="gameRequestTitle">Game name</label>
+            <input id="gameRequestTitle" maxlength="100" required placeholder="Which game should we add?">
+            <label for="gameRequestUrl">Game link (optional)</label>
+            <input id="gameRequestUrl" type="url" maxlength="2000" placeholder="https://…">
+            <label for="gameRequestDetails">Extra details (optional)</label>
+            <textarea id="gameRequestDetails" rows="3" maxlength="700" placeholder="Anything admins should know?"></textarea>
+            <button class="primary" id="submitGameRequest" type="submit">Send game request</button>
+            <div id="gameRequestStatus" class="auth-message" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </article>
     </section>
 
 
@@ -1898,6 +1915,34 @@ function loadFromDeluxe(onLoaded) {
       toast("Inbox cleared","All messages and notifications are now marked as read.");
     }
     await loadInbox();
+  }
+
+  async function submitGameRequest(event){
+    event.preventDefault();
+    const status=$("gameRequestStatus"),button=$("submitGameRequest");
+    if(!sb||!currentUser){if(status)status.textContent="Please sign in to send a game request.";openAuth("login");return;}
+    const title=$("gameRequestTitle")?.value.trim()||"";
+    const url=$("gameRequestUrl")?.value.trim()||"";
+    const details=$("gameRequestDetails")?.value.trim()||"";
+    if(!title){if(status)status.textContent="Enter a game name first.";return;}
+    if(url&&!validGameUrl(url)){if(status)status.textContent="Enter a valid game link.";return;}
+    if(button){button.disabled=true;button.textContent="Sending…";}
+    if(status)status.textContent="Sending your request to the admins…";
+    try{
+      const {data:admins,error:adminError}=await sb.from("user_roles").select("user_id").eq("role","admin");
+      if(adminError)throw adminError;
+      const adminIds=[...new Set((admins||[]).map(row=>row.user_id).filter(id=>id&&id!==currentUser.id))];
+      if(!adminIds.length)throw new Error("No admin inboxes could be found. Please try again later.");
+      const content="GAME REQUEST: "+title+"\\n"+(url?"Game link: "+url+"\\n":"")+(details?"Details: "+details+"\\n":"")+"Requested by: "+(currentProfile?.username||currentUser.email||"Deluxe user");
+      const rows=adminIds.map(recipient_id=>({sender_id:currentUser.id,recipient_id,game_id:null,content}));
+      const {error}=await sb.from("messages").insert(rows);
+      if(error)throw error;
+      $("gameRequestForm")?.reset();
+      if(status)status.textContent="Game request sent to the admins' inbox!";
+    }catch(error){
+      console.error("Game request failed:",error);
+      if(status)status.textContent=error.message||"Couldn't send your request. Please try again.";
+    }finally{if(button){button.disabled=false;button.textContent="Send game request";}}
   }
 
   async function loadInbox(){
@@ -3722,9 +3767,9 @@ flushDeluxePlayTracking();
   }
   async function loadAdminCreatedThemeGiftThemes(){
     const select=$("adminCreatedThemeGiftTheme");if(!select||currentRole!=="admin")return;
-    const {data,error}=await sb.from("game_theme_designs").select("game_id,creator_id,theme_name,games(title)").order("theme_name");
+    const {data,error}=await sb.from("game_theme_designs").select("game_id,creator_id,theme_name,games(title,status)").order("theme_name");
     if(error){select.innerHTML='<option value="">Could not load themes</option>';return;}
-    adminCreatedThemeRows=data||[];
+    adminCreatedThemeRows=(data||[]).filter(t=>t.games?.status==="published");
     select.innerHTML='<option value="">Choose a creator theme…</option>'+adminCreatedThemeRows.map(t=>'<option value="'+t.game_id+'">'+escapeHtml(t.theme_name||"Untitled theme")+' — '+escapeHtml(t.games?.title||"Game")+'</option>').join("");
   }
   async function giftAdminCreatedTheme(){
@@ -4200,6 +4245,7 @@ flushDeluxePlayTracking();
   $("cancelGameUploader")?.addEventListener("click", closeGameUploader);
   $("gameForm")?.addEventListener("submit", submitGame);
   $("gameSearch")?.addEventListener("input", e => { renderGames(e.target.value); renderPurchasedSeasonalGames(e.target.value); });
+  $("gameRequestForm")?.addEventListener("submit",submitGameRequest);
   $("createGameCollectionButton")?.addEventListener("click",()=>openGameCollectionEditor());
   $("gameCollectionForm")?.addEventListener("submit",saveGameCollection);
   $("discoverSearch")?.addEventListener("input", renderDiscover);
