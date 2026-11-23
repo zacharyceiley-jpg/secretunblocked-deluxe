@@ -3035,7 +3035,7 @@ function loadFromDeluxe(onLoaded) {
   function openGameCollection(id){
     const c=gameCollections.find(x=>x.id===id);if(!c)return;
     $("collectionDetailTitle").textContent=c.title;
-    $("collectionDetailGrid").innerHTML=c.items.map(g=>{const icon=validGameUrl(g.icon_url)?g.icon_url:(validGameUrl(g.thumbnail_url)?g.thumbnail_url:"");return '<button class="collection-detail-game" type="button" onclick="openGame(\''+g.id+'\');closeGameCollectionDetail()"><img src="'+escapeHtml(icon)+'" alt=""><strong>'+escapeHtml(g.title||"Untitled game")+'</strong></button>'}).join("")||'<p class="small-note">This collection has no games yet.</p>';
+    $("collectionDetailGrid").innerHTML=c.items.map(g=>{const icon=validGameUrl(g.icon_url)?g.icon_url:(validGameUrl(g.thumbnail_url)?g.thumbnail_url:"");return '<button class="collection-detail-game" type="button" onclick="playGameInNewTab(\''+g.id+'\');closeGameCollectionDetail()"><img src="'+escapeHtml(icon)+'" alt=""><strong>'+escapeHtml(g.title||"Untitled game")+'</strong></button>'}).join("")||'<p class="small-note">This collection has no games yet.</p>';
     openModal("gameCollectionDetail");
   }
   function closeGameCollectionDetail(){closeModal("gameCollectionDetail");}
