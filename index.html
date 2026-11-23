@@ -2909,7 +2909,7 @@ function loadFromDeluxe(onLoaded) {
     if ($("deluxeAgeSettingStatus") && savedDeluxeAge !== null) $("deluxeAgeSettingStatus").textContent = "Saved on this device. No birthday is stored.";
   }
   function deluxeGameSlug(title, fallback) {
-    const slug = String(title || "").normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "")
+    const slug = String(title || "").toString()
       .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     return slug || String(fallback || "game");
   }
@@ -2928,7 +2928,8 @@ function loadFromDeluxe(onLoaded) {
   };
 
   function openGameFromPlayRoute() {
-    if (!/^\\/play\\/[^/]+\\/?$/.test(window.location.pathname) || window.__deluxePlayRouteHandled) return;
+    const routeParts = window.location.pathname.split("/").filter(Boolean);
+    if (routeParts.length !== 2 || routeParts[0] !== "play" || !routeParts[1] || window.__deluxePlayRouteHandled) return;
     window.__deluxePlayRouteHandled = true;
     let slug = "";
     try { slug = decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || ""); } catch (_) {}
@@ -3385,7 +3386,7 @@ flushDeluxePlayTracking();
     sfothPlayTimer = null;
     currentGame = null;
     $("gamePlayerRoot").innerHTML = "";
-    if (/^\\/play\\//.test(window.location.pathname)) {
+    if (window.location.pathname.startsWith("/play/")) {
       window.__deluxePlayRouteHandled = false;
       window.history.replaceState({}, "", "/");
     }
