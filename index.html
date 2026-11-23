@@ -2908,45 +2908,12 @@ function loadFromDeluxe(onLoaded) {
     $("deluxeAgeSetting").value = savedDeluxeAge === null ? "" : String(savedDeluxeAge);
     if ($("deluxeAgeSettingStatus") && savedDeluxeAge !== null) $("deluxeAgeSettingStatus").textContent = "Saved on this device. No birthday is stored.";
   }
-  function deluxeGameSlug(title, fallback) {
-    const slug = String(title || "").toString()
-      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    return slug || String(fallback || "game");
-  }
-
-  // Open the game in its own /play/<slug> URL in a separate browser tab.
-  // window.open runs synchronously from the click so popup blockers allow it.
-  window.playGameInNewTab = function(id) {
-    const game = allPublishedGames.find(item => String(item.id) === String(id));
-    if (!game) return;
-    if (!checkGameAgeBeforePlay(game)) return;
-    const slug = deluxeGameSlug(game.title, game.id);
-    const collisions = allPublishedGames.filter(item => deluxeGameSlug(item.title, item.id) === slug);
-    const url = new URL("/play/" + encodeURIComponent(slug), window.location.origin);
-    if (collisions.length > 1) url.searchParams.set("id", game.id);
-    window.open(url.href, "_blank", "noopener,noreferrer");
-  };
-
-  function openGameFromPlayRoute() {
-    const routeParts = window.location.pathname.split("/").filter(Boolean);
-    if (routeParts.length !== 2 || routeParts[0] !== "play" || !routeParts[1] || window.__deluxePlayRouteHandled) return;
-    window.__deluxePlayRouteHandled = true;
-    let slug = "";
-    try { slug = decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || ""); } catch (_) {}
-    const requestedId = new URLSearchParams(window.location.search).get("id");
-    const game = requestedId
-      ? allPublishedGames.find(item => String(item.id) === String(requestedId))
-      : allPublishedGames.find(item => deluxeGameSlug(item.title, item.id) === slug);
-    if (!game) {
-      showPage("games");
-      alert("This game could not be found. It may have been removed or unpublished.");
-      return;
-    }
-    openGame(game.id);
-  }
-
   function playGameFromDetails(id) {
-    window.playGameInNewTab(id);
+    const game = allPublishedGames.find(item => String(item.id) === String(id));
+    if (!game || !checkGameAgeBeforePlay(game)) return;
+    rememberDeluxeGame(id);
+    startDeluxePlayTracking(id);
+    openGame(id);
   }
   let deluxePlayTrackingId = null;
   let deluxePlayTrackingStarted = 0;
@@ -3013,7 +2980,6 @@ function loadFromDeluxe(onLoaded) {
     await loadPurchasedSeasonalGames();
     restoreDeluxePreferredGenres();
     renderGames($("gameSearch")?.value || "");
-    openGameFromPlayRoute();
   }
 
   let gameCollections = [];
@@ -3035,7 +3001,7 @@ function loadFromDeluxe(onLoaded) {
   function openGameCollection(id){
     const c=gameCollections.find(x=>x.id===id);if(!c)return;
     $("collectionDetailTitle").textContent=c.title;
-    $("collectionDetailGrid").innerHTML=c.items.map(g=>{const icon=validGameUrl(g.icon_url)?g.icon_url:(validGameUrl(g.thumbnail_url)?g.thumbnail_url:"");return '<button class="collection-detail-game" type="button" onclick="playGameInNewTab(\''+g.id+'\');closeGameCollectionDetail()"><img src="'+escapeHtml(icon)+'" alt=""><strong>'+escapeHtml(g.title||"Untitled game")+'</strong></button>'}).join("")||'<p class="small-note">This collection has no games yet.</p>';
+    $("collectionDetailGrid").innerHTML=c.items.map(g=>{const icon=validGameUrl(g.icon_url)?g.icon_url:(validGameUrl(g.thumbnail_url)?g.thumbnail_url:"");return '<button class="collection-detail-game" type="button" onclick="openGame(\''+g.id+'\');closeGameCollectionDetail()"><img src="'+escapeHtml(icon)+'" alt=""><strong>'+escapeHtml(g.title||"Untitled game")+'</strong></button>'}).join("")||'<p class="small-note">This collection has no games yet.</p>';
     openModal("gameCollectionDetail");
   }
   function closeGameCollectionDetail(){closeModal("gameCollectionDetail");}
@@ -3386,10 +3352,6 @@ flushDeluxePlayTracking();
     sfothPlayTimer = null;
     currentGame = null;
     $("gamePlayerRoot").innerHTML = "";
-    if (window.location.pathname.startsWith("/play/")) {
-      window.__deluxePlayRouteHandled = false;
-      window.history.replaceState({}, "", "/");
-    }
     showPage("games");
   }
 
