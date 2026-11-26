@@ -169,6 +169,16 @@ main{max-width:1200px;margin:auto;padding:50px 28px 90px}
   body.sfoth-exclusive-theme{background-image:linear-gradient(180deg,rgba(7,10,18,.55),rgba(7,10,18,.78)),url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQD6SqgTJvbdOv6nuk-zpOfVbEs15Y0RUeuAtJ9zDzs8F5wLC1d4shN7m8&s=10");background-size:cover;background-position:center;background-attachment:fixed}
   body.sfoth-exclusive-theme main{background:rgba(8,11,18,.18)}
   body.sfoth-exclusive-theme .topbar{background:rgba(7,10,18,.84)}
+
+  /* Marketplace redesign */
+  .marketplace-reward-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 28px;padding:18px 21px;border:1px solid rgba(154,131,255,.35);border-radius:16px;background:linear-gradient(105deg,rgba(124,92,255,.17),rgba(26,30,38,.92));box-shadow:inset 0 1px rgba(255,255,255,.04)}
+  .marketplace-reward-bar>div:first-child{display:flex;flex-direction:column;gap:4px}.marketplace-bar-kicker{font-size:10px;font-weight:850;letter-spacing:.14em;color:var(--accent2)}.marketplace-reward-bar strong{font-size:17px}.marketplace-reward-bar small{color:var(--muted);font-size:12px}.marketplace-bar-balance{font-size:13px;font-weight:750;color:#e5ddff;text-align:right}
+  .marketplace-section-heading{margin:34px 0 13px}.marketplace-section-heading h2{font-size:26px}.marketplace-daily-card{margin-bottom:22px}
+  .marketplace-daily-top{display:flex;justify-content:space-between;align-items:center;gap:14px}.marketplace-daily-top h3,.marketplace-task-heading h3{margin:0 0 5px}.marketplace-daily-top p,.marketplace-task-heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.marketplace-task-heading{margin:24px 0 14px;padding-top:19px;border-top:1px solid var(--line)}
+  .marketplace-collapsible{border:1px solid var(--line);border-radius:16px;background:rgba(20,23,29,.78);overflow:hidden}.marketplace-collapsible>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:18px 20px;cursor:pointer;user-select:none}.marketplace-collapsible>summary::-webkit-details-marker{display:none}.marketplace-collapsible>summary>span:first-child{display:flex;flex-direction:column;gap:4px}.marketplace-collapsible>summary strong{font-size:15px}.marketplace-collapsible>summary small{font-size:12px;color:var(--muted)}.marketplace-chevron{font-size:22px;color:var(--accent2);transition:transform .18s ease}.marketplace-collapsible[open] .marketplace-chevron{transform:rotate(180deg)}.marketplace-collapsible-content{padding:0 18px 18px}
+  .marketplace-search-wrap{display:flex;align-items:center;gap:10px;margin:16px 0 18px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--muted)}.marketplace-search-wrap>span{font-size:23px}.marketplace-search-wrap input{width:100%;padding:13px 0;border:0;outline:0;background:transparent;color:var(--text)}.marketplace-search-wrap:focus-within{border-color:var(--accent)}.marketplace-no-results{grid-column:1/-1;padding:22px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);text-align:center}
+  @media(max-width:620px){.marketplace-reward-bar,.marketplace-daily-top{align-items:flex-start;flex-direction:column}.marketplace-bar-balance{text-align:left}}
+
   .hidden{display:none!important}
 
     .check-row{display:flex!important;align-items:center;gap:8px;color:var(--text)!important;margin-top:2px!important}.check-row input{width:18px!important;margin:0!important;accent-color:var(--accent)}
@@ -603,14 +613,16 @@ body{
 
 
     <section id="marketplacePage" class="page">
-      <article class="exclusive-theme-card" style="margin:18px 0"><div class="exclusive-theme-body"><h2>📅 Daily Tasks</h2><p>Complete these activities around Deluxe to earn <strong>50 Delubux each</strong>. Tasks reset daily.</p><div id="dailyTasksList" class="settings-grid"><div class="loading">Loading daily tasks…</div></div><div id="dailyTasksMessage" class="theme-message" aria-live="polite"></div></div></article>
-
-      <div class="page-title"><p class="eyebrow">DELUXE ECONOMY</p><h1>🪙 Delubux Marketplace</h1><p>Earn daily Delubux and buy or gift community themes.</p></div>
-      <article class="exclusive-theme-card"><div class="exclusive-theme-body"><h2>Daily reward · 10 Delubux</h2><p>Claim once every 24 hours.</p><button class="primary" id="claimDailyReward" onclick="claimDailyDelubux()">Claim 10 🪙</button><div id="dailyRewardMessage" class="theme-message"></div></div></article>
-      <div class="section-heading"><h2>Account roles</h2></div><p class="settings-note">Bugtester is available for 30 Delubux. Publisher is not for sale and can only be gifted by an Admin. Publisher usernames are green; Bugtester usernames are blue.</p><div id="roleMarketplaceGrid" class="settings-grid"></div><div id="roleMarketplaceMessage" class="theme-message"></div>
-      <div class="section-heading"><h2>Community Themes</h2></div><p class="settings-note">Purchase themes made by Deluxe creators for 6 Delubux, or gift a theme you already own for 5 Delubux.</p><div id="communityThemeMarketplaceGrid" class="settings-grid"><div class="loading">Loading community themes…</div></div><div id="communityThemeMarketplaceMessage" class="theme-message" role="status"></div>
-      <div class="section-heading"><h2>Seasonal Bundles</h2></div><p class="settings-note">Limited seasonal collections with three games in every pack. Gifting seasonal bundles is 15% cheaper than buying one for yourself.</p><div id="seasonalMarketplaceGrid" class="seasonal-bundle-grid"><div class="loading">Loading seasonal bundles…</div></div>
-      
+      <div class="page-title"><p class="eyebrow">DELUXE ECONOMY</p><h1>Delubux Marketplace</h1><p>Earn daily rewards, explore seasonal bundles and discover community themes.</p></div>
+      <div class="marketplace-reward-bar"><div><span class="marketplace-bar-kicker">DAILY REWARDS</span><strong>Keep earning Delubux</strong><small>Claim your daily reward and complete tasks to earn more.</small></div><div class="marketplace-bar-balance" id="marketplaceRewardBalance">Your Delubux balance</div></div>
+      <div class="section-heading marketplace-section-heading"><h2>Daily Rewards</h2></div>
+      <article class="exclusive-theme-card marketplace-daily-card"><div class="exclusive-theme-body"><div class="marketplace-daily-top"><div><h3>Daily reward · 10 Delubux</h3><p>Claim once every 24 hours.</p></div><button class="primary" id="claimDailyReward" onclick="claimDailyDelubux()">Claim 10 Delubux</button></div><div id="dailyRewardMessage" class="theme-message"></div><div class="marketplace-task-heading"><h3>Daily Tasks</h3><p>Complete activities around Deluxe to earn <strong>50 Delubux each</strong>. Tasks reset daily.</p></div><div id="dailyTasksList" class="settings-grid"><div class="loading">Loading daily tasks…</div></div><div id="dailyTasksMessage" class="theme-message" aria-live="polite"></div></div></article>
+      <div class="section-heading marketplace-section-heading"><h2>Seasonal Bundles</h2></div><p class="settings-note">Limited seasonal collections with three games in every pack. Gifting seasonal bundles is 15% cheaper than buying one for yourself.</p>
+      <details class="marketplace-collapsible" id="seasonalBundlesDisclosure" open><summary><span><strong>Browse Seasonal Bundles</strong><small>Expand or collapse the seasonal collection</small></span><span class="marketplace-chevron" aria-hidden="true">⌄</span></summary><div class="marketplace-collapsible-content"><div id="seasonalMarketplaceGrid" class="seasonal-bundle-grid"><div class="loading">Loading seasonal bundles…</div></div></div></details>
+      <div class="section-heading marketplace-section-heading"><h2>Themes</h2></div><p class="settings-note">Purchase themes made by Deluxe creators for 6 Delubux, or gift a theme you already own for 5 Delubux.</p>
+      <div class="marketplace-search-wrap"><span aria-hidden="true">⌕</span><input id="marketplaceSearch" type="search" placeholder="Search seasonal bundles and themes…" autocomplete="off" aria-label="Search seasonal bundles and themes"></div>
+      <div id="communityThemeMarketplaceGrid" class="settings-grid"><div class="loading">Loading community themes…</div></div><div id="communityThemeMarketplaceMessage" class="theme-message" role="status"></div>
+      <div class="section-heading marketplace-section-heading"><h2>Account Roles</h2></div><p class="settings-note">Bugtester is available for 30 Delubux. Publisher is not for sale and can only be gifted by an Admin. Publisher usernames are green; Bugtester usernames are blue.</p><div id="roleMarketplaceGrid" class="settings-grid"></div><div id="roleMarketplaceMessage" class="theme-message"></div>
     </section>
     <section id="settingsPage" class="page">
       <div class="page-title">
@@ -5236,6 +5248,30 @@ window.openGameDetails=function(id){
       if(!panel.children.length)panel.innerHTML+='<div class="admin-v2-empty">No tools are available in this section yet.</div>';
     });
   };
+})();
+</script>
+<script id="marketplaceRevamp">
+(() => {
+ const $=id=>document.getElementById(id), search=$("marketplaceSearch");
+ const grids=["seasonalMarketplaceGrid","communityThemeMarketplaceGrid"];
+ function filter(){
+  const q=(search?.value||"").trim().toLocaleLowerCase();
+  grids.forEach(id=>{
+   const grid=$(id);if(!grid)return;
+   grid.querySelectorAll(".marketplace-no-results").forEach(n=>n.remove());
+   let count=0;
+   [...grid.children].forEach(card=>{
+    if(card.classList.contains("loading"))return;
+    const match=!q||card.textContent.toLocaleLowerCase().includes(q);
+    card.hidden=!match;if(match)count++;
+   });
+   if(q&&count===0){const empty=document.createElement("div");empty.className="marketplace-no-results";empty.textContent="No matching items found.";grid.appendChild(empty);}
+  });
+ }
+ search?.addEventListener("input",filter);
+ grids.forEach(id=>{const grid=$(id);if(grid)new MutationObserver(()=>{if(search?.value)filter();}).observe(grid,{childList:true,subtree:true});});
+ const balance=$("delubuxBalance"),target=$("marketplaceRewardBalance");
+ if(balance&&target){const sync=()=>target.textContent=balance.textContent.trim();sync();new MutationObserver(sync).observe(balance,{childList:true,subtree:true,characterData:true});}
 })();
 </script>
 </body>
