@@ -5269,7 +5269,6 @@ window.openGameDetails=function(id){
   });
  }
  search?.addEventListener("input",filter);
- grids.forEach(id=>{const grid=$(id);if(grid)new MutationObserver(()=>{if(search?.value)filter();}).observe(grid,{childList:true,subtree:true});});
  const balance=$("delubuxBalance"),target=$("marketplaceRewardBalance");
  if(balance&&target){const sync=()=>target.textContent=balance.textContent.trim();sync();new MutationObserver(sync).observe(balance,{childList:true,subtree:true,characterData:true});}
 })();
