@@ -503,6 +503,31 @@ body{
 @media(max-width:850px){#adminDashboard{grid-template-columns:1fr;gap:14px}.admin-v2-nav{position:static!important;display:flex;align-items:center;gap:5px;overflow-x:auto;white-space:nowrap}.admin-v2-brand,.admin-v2-nav-label{display:none}.admin-v2-tab{width:auto;flex:0 0 auto;padding:10px 12px}.admin-v2-tab:hover{transform:none}}
 @media(max-width:560px){#adminDashboard{margin-top:14px}.admin-v2-heading{display:block}.admin-v2-tab{font-size:12px}.admin-v2-tab-icon{width:auto}}
 </style>
+
+<style id="deluxe-user-directory-v2">
+#usersPage .page-title{margin-bottom:24px}
+.directory-search-wrap{display:flex;align-items:center;gap:10px;max-width:440px;margin-top:20px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:rgba(20,23,29,.78);color:var(--muted)}
+.directory-search-wrap span{font-size:22px}
+.directory-search-wrap input{width:100%;min-width:0;border:0!important;background:transparent!important;outline:none;padding:13px 0!important;color:var(--text)}
+.directory-user-card{padding:0!important;overflow:hidden;position:relative;min-height:218px;display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;background:rgba(20,23,29,.78)!important;backdrop-filter:blur(16px)}
+.directory-user-card:hover{transform:translateY(-3px);border-color:var(--accent)!important;box-shadow:0 16px 42px rgba(0,0,0,.24)}
+.directory-user-card[hidden]{display:none!important}
+.directory-user-banner{height:104px;flex:0 0 104px;background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(45,65,105,.26)),linear-gradient(135deg,#252b38,#151922);background-position:center;background-size:cover;position:relative}
+.directory-theme-label{position:absolute;right:10px;bottom:9px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 8px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:rgba(0,0,0,.38);backdrop-filter:blur(12px);font-size:10px;color:#fff}
+.directory-user-main{padding:0 16px 16px;position:relative;flex:1}
+.directory-user-avatar{width:58px;height:58px;border:3px solid var(--panel);margin-top:-29px;position:relative;background:#242a36;box-shadow:0 5px 18px rgba(0,0,0,.25)}
+.directory-user-avatar img{width:100%;height:100%;object-fit:cover}
+.directory-user-card .user-name{margin-top:9px;font-size:16px;overflow-wrap:anywhere}
+.directory-user-card .role{margin-top:3px}
+.directory-user-actions{display:flex;align-items:center;min-height:36px;margin-top:12px}
+.directory-user-actions .secondary{font-size:12px;padding:8px 11px}
+.directory-friend-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:750;letter-spacing:.01em}
+.directory-friend-status.is-pending{color:#fbad42}
+.directory-friend-status.is-friended{color:#4ade80}
+.directory-friend-status.is-sent,.directory-friend-status.is-self{color:var(--muted)}
+.directory-add-friend:disabled{opacity:.55;cursor:wait}
+@media(max-width:620px){#usersPage .user-grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}.directory-user-card{min-height:205px}.directory-user-banner{height:88px;flex-basis:88px}.directory-user-main{padding:0 12px 13px}}
+</style>
 </head>
 <body>
   <header class="topbar deluxe-topbar">
@@ -852,7 +877,7 @@ function loadFromDeluxe(onLoaded) {
     </section>
 
     <section id="usersPage" class="page">
-      <div class="page-title"><p class="eyebrow">COMMUNITY</p><h1>Users</h1><p>Registered users will appear here.</p></div>
+      <div class="page-title"><p class="eyebrow">COMMUNITY</p><h1>Users</h1><p>Find people on Secret Unblocked Deluxe.</p><label class="directory-search-wrap" for="usersSearch"><span>⌕</span><input id="usersSearch" class="social-input" type="search" placeholder="Search usernames…"></label></div>
       <div id="usersGrid" class="user-grid"><div class="loading">Loading users…</div></div>
     </section>
     <section id="profilePage" class="page"><div class="profile-page-shell"><div class="profile-page-toolbar"><button class="secondary" type="button" onclick="backFromProfile()">← Back</button><span class="small-note">Deluxe member page</span></div><div id="profilePageContent"><div class="loading">Loading profile…</div></div></div></section>
@@ -2587,14 +2612,110 @@ function loadFromDeluxe(onLoaded) {
 
   async function loadUsers(){
     const grid = $("usersGrid");
+    if (!grid) return;
     if (!sb) { grid.innerHTML = '<div class="loading">Connect Supabase to load users.</div>'; return; }
     grid.innerHTML = '<div class="loading">Loading users…</div>';
-    const {data,error} = await sb.from("profiles").select("id,username,avatar_url,bio").order("username");
-    if(error){grid.innerHTML='<div class="loading">Unable to load users.</div>';console.error(error);return}
-    const [{data:roles},{data:ownedRoleRows}]=await Promise.all([sb.from("user_roles").select("user_id,role"),sb.from("user_role_ownership").select("user_id,role")]);const roleMap=new Map((roles||[]).map(r=>[r.user_id,r.role]));const ownedRoleMap=new Map();(ownedRoleRows||[]).forEach(r=>{if(!ownedRoleMap.has(r.user_id))ownedRoleMap.set(r.user_id,[]);ownedRoleMap.get(r.user_id).push(r.role);});
-    if(!data?.length){grid.innerHTML='<div class="empty-state"><span>👥</span><h2>No users yet</h2><p>Create the first Deluxe account.</p></div>';return}
-    grid.innerHTML=data.map(u=>{const base=roleMap.get(u.id)||"user";const owned=ownedRoleMap.get(u.id)||[];const r=bestRoleFor(owned,base);return '<article class="user-card" onclick="viewProfile(\''+u.id+'\')"><div class="avatar">'+(u.avatar_url?'<img src="'+escapeHtml(u.avatar_url)+'" alt="">':escapeHtml(initials(u.username)))+'</div><div class="user-name '+roleClass(r)+'">'+escapeHtml(u.username||"User")+' '+roleTicksMarkup(owned,base)+'</div><div class="role '+roleClass(r)+'">'+roleLabel(r)+'</div><div class="presence-pill" id="userPresence-'+u.id+'">Checking status…</div>'+(currentUser&&u.id!==currentUser.id?'<div class="social-actions" style="margin-top:12px"><button class="secondary" onclick="event.stopPropagation();sendFriendRequest(\''+u.id+'\')">＋ Add friend</button><button class="secondary" onclick="event.stopPropagation();openFriendChat(\''+u.id+'\',\''+escapeHtml(u.username||"User").replace(/'/g,"&#039;")+'\')">Message</button></div>':"")+'</article>';}).join("");
-    if(window.refreshDeluxePresenceCards)window.refreshDeluxePresenceCards();
+
+    const [profilesResult, rolesResult, ownedRolesResult, themesResult] = await Promise.all([
+      sb.from("profiles").select("id,username,avatar_url,bio,profile_theme_game_id").order("username"),
+      sb.from("user_roles").select("user_id,role"),
+      sb.from("user_role_ownership").select("user_id,role"),
+      sb.from("game_theme_designs").select("game_id,creator_id,theme_name,background_image_url,background_color,text_color,accent_color")
+    ]);
+    const {data,error} = profilesResult;
+    if (error) {
+      grid.innerHTML = '<div class="loading">Unable to load users.</div>';
+      console.error("User directory:", error);
+      return;
+    }
+
+    const roleMap = new Map((rolesResult.data || []).map(r => [r.user_id,r.role]));
+    const ownedRoleMap = new Map();
+    (ownedRolesResult.data || []).forEach(r => {
+      if (!ownedRoleMap.has(r.user_id)) ownedRoleMap.set(r.user_id,[]);
+      ownedRoleMap.get(r.user_id).push(r.role);
+    });
+    const themeRows = themesResult.data || [];
+    const themeById = new Map(themeRows.map(t => [t.game_id,t]));
+    const fallbackThemeByCreator = new Map();
+    themeRows.forEach(t => {
+      if (t.background_image_url && !fallbackThemeByCreator.has(t.creator_id)) fallbackThemeByCreator.set(t.creator_id,t);
+    });
+
+    let friendIds = new Set(), incomingPending = new Map(), outgoingPending = new Set();
+    if (currentUser) {
+      const [friendsResult,incomingResult,outgoingResult] = await Promise.all([
+        sb.from("friendships").select("friend_id").eq("user_id",currentUser.id),
+        sb.from("friend_requests").select("id,sender_id").eq("recipient_id",currentUser.id).eq("status","pending"),
+        sb.from("friend_requests").select("id,recipient_id").eq("sender_id",currentUser.id).eq("status","pending")
+      ]);
+      friendIds = new Set((friendsResult.data || []).map(x => x.friend_id));
+      incomingPending = new Map((incomingResult.data || []).map(x => [x.sender_id,x.id]));
+      outgoingPending = new Set((outgoingResult.data || []).map(x => x.recipient_id));
+    }
+
+    if (!data?.length) {
+      grid.innerHTML = '<div class="empty-state"><span>👥</span><h2>No users yet</h2><p>Create the first Deluxe account.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = data.map(u => {
+      const base = roleMap.get(u.id) || "user";
+      const owned = ownedRoleMap.get(u.id) || [];
+      const role = bestRoleFor(owned,base);
+      const theme = themeById.get(u.profile_theme_game_id) || fallbackThemeByCreator.get(u.id);
+      const bannerUrl = theme?.background_image_url && validGameUrl(theme.background_image_url) ? theme.background_image_url : "";
+      const bannerStyle = bannerUrl ? ' style="background-image:linear-gradient(180deg,rgba(7,9,14,.04),rgba(7,9,14,.84)),url(&quot;'+escapeHtml(bannerUrl)+'&quot;)"' : "";
+      const isSelf = !!currentUser && currentUser.id === u.id;
+      let socialControl = "";
+      if (isSelf) {
+        socialControl = '<span class="directory-friend-status is-self">Your profile</span>';
+      } else if (currentUser && friendIds.has(u.id)) {
+        socialControl = '<span class="directory-friend-status is-friended">✓ Friended</span>';
+      } else if (currentUser && incomingPending.has(u.id)) {
+        socialControl = '<span class="directory-friend-status is-pending">Friend pending</span>';
+      } else if (currentUser && outgoingPending.has(u.id)) {
+        socialControl = '<span class="directory-friend-status is-sent">Request sent</span>';
+      } else {
+        socialControl = '<button class="secondary directory-add-friend" type="button" data-add-friend="'+u.id+'">'+(currentUser?'＋ Add friend':'＋ Sign in to add friend')+'</button>';
+      }
+      const avatar = u.avatar_url
+        ? '<img src="'+escapeHtml(u.avatar_url)+'" alt="" loading="lazy">'
+        : escapeHtml(initials(u.username));
+      return '<article class="user-card directory-user-card" data-user-id="'+u.id+'" data-search="'+escapeHtml((u.username||"").toLowerCase())+'">'+
+        '<div class="directory-user-banner"'+bannerStyle+'>'+(theme?.theme_name?'<span class="directory-theme-label">'+escapeHtml(theme.theme_name)+'</span>':'')+'</div>'+
+        '<div class="directory-user-main"><div class="avatar directory-user-avatar">'+avatar+'</div>'+
+        '<div class="user-name '+roleClass(role)+'">'+escapeHtml(u.username||"User")+' '+roleTicksMarkup(owned,base)+'</div>'+
+        '<div class="role '+roleClass(role)+'">'+roleLabel(role)+'</div>'+
+        '<div class="directory-user-actions">'+socialControl+'</div></div></article>';
+    }).join("");
+
+    grid.querySelectorAll(".directory-user-card").forEach(card => {
+      card.addEventListener("click",event => {
+        if (event.target.closest("button")) return;
+        viewProfile(card.dataset.userId);
+      });
+    });
+    grid.querySelectorAll("[data-add-friend]").forEach(button => {
+      button.addEventListener("click",async event => {
+        event.stopPropagation();
+        const targetId=button.dataset.addFriend;
+        if(!currentUser){openAuth("login");return;}
+        button.disabled=true;
+        await window.sendFriendRequest?.(targetId);
+        await loadUsers();
+      });
+    });
+    if (window.refreshDeluxePresenceCards) window.refreshDeluxePresenceCards();
+    const search=$("usersSearch");
+    if(search) search.oninput=()=>filterUserDirectory(search.value);
+  }
+
+  function filterUserDirectory(value=""){
+    const q=String(value||"").trim().toLocaleLowerCase();
+    document.querySelectorAll("#usersGrid .directory-user-card").forEach(card=>{
+      card.hidden=!!q&&!String(card.dataset.search||"").includes(q);
+    });
   }
 
   let profileReturnPage = "users";
