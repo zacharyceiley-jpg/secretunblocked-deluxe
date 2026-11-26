@@ -5269,6 +5269,16 @@ window.openGameDetails=function(id){
   });
  }
  search?.addEventListener("input",filter);
+ // Re-apply an active search when asynchronously loaded bundle/theme cards arrive.
+ grids.forEach(id=>{
+  const grid=$(id);if(!grid)return;
+  new MutationObserver(records=>{
+   const hasNewCards=records.some(record=>[...record.addedNodes,...record.removedNodes].some(node=>
+    node.nodeType===1&&!node.classList.contains("marketplace-no-results")&&!node.classList.contains("loading")
+   ));
+   if(hasNewCards&&search?.value)filter();
+  }).observe(grid,{childList:true});
+ });
  const balance=$("delubuxBalance"),target=$("marketplaceRewardBalance");
  if(balance&&target){const sync=()=>target.textContent=balance.textContent.trim();sync();new MutationObserver(sync).observe(balance,{childList:true,subtree:true,characterData:true});}
 })();
