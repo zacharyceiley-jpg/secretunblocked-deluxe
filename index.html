@@ -2671,7 +2671,7 @@ function loadFromDeluxe(onLoaded) {
       if (isSelf) {
         socialControl = '<span class="directory-friend-status is-self">Your profile</span>';
       } else if (currentUser && friendIds.has(u.id)) {
-        socialControl = '<span class="directory-friend-status is-friended">✓ Friended</span>';
+        socialControl = '<span class="directory-friend-status is-friended">✓ Friended</span><button class="secondary directory-message-button" type="button" data-message-user="'+u.id+'" data-message-name="'+escapeHtml(u.username||"Friend")+'">Message</button>';
       } else if (currentUser && incomingPending.has(u.id)) {
         socialControl = '<span class="directory-friend-status is-pending">Friend pending</span>';
       } else if (currentUser && outgoingPending.has(u.id)) {
@@ -2687,6 +2687,7 @@ function loadFromDeluxe(onLoaded) {
         '<div class="directory-user-main"><div class="avatar directory-user-avatar">'+avatar+'</div>'+
         '<div class="user-name '+roleClass(role)+'">'+escapeHtml(u.username||"User")+' '+roleTicksMarkup(owned,base)+'</div>'+
         '<div class="role '+roleClass(role)+'">'+roleLabel(role)+'</div>'+
+        '<div class="presence-pill" id="userPresence-'+u.id+'">Checking status…</div>'+
         '<div class="directory-user-actions">'+socialControl+'</div></div></article>';
     }).join("");
 
@@ -2704,6 +2705,12 @@ function loadFromDeluxe(onLoaded) {
         button.disabled=true;
         await window.sendFriendRequest?.(targetId);
         await loadUsers();
+      });
+    });
+    grid.querySelectorAll("[data-message-user]").forEach(button => {
+      button.addEventListener("click",event => {
+        event.stopPropagation();
+        window.openFriendChat?.(button.dataset.messageUser,button.dataset.messageName||"Friend");
       });
     });
     if (window.refreshDeluxePresenceCards) window.refreshDeluxePresenceCards();
